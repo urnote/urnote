@@ -1,0 +1,47 @@
+# -*- mode: python -*-
+
+block_cipher = None
+
+added_files = [
+    (r'{locales_path}', 'locales'),
+    (r'{docs_path}','docs'),
+    (r'{bat_path}','')
+]
+a = Analysis(
+    [r'{main_module_path}'],
+    pathex=[
+        '{python_search_path}',
+    ],
+    binaries=None,
+    datas=added_files,
+    hiddenimports=[],
+    hookspath=[],
+    runtime_hooks=[],
+    excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher
+)
+pyz = PYZ(
+    a.pure, a.zipped_data, cipher=block_cipher
+)
+exe = EXE(
+    pyz,
+    a.scripts,
+    exclude_binaries=True,
+    name='note',
+    debug=False,
+    strip=False,
+    upx=True,
+    console=True,
+    icon=r'{icon_path}'
+)
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    name='note'
+)
