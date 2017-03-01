@@ -19,8 +19,8 @@ smart note 是一个帮助你复习笔记的工具.
 安装好note之后即可:
 
 1. `note init` 创建工作空间
-2. 写笔记,执行`note state`确认添加的笔记(该步骤可以跳过),之后执行`note commit`
-3. 每天需要复习笔记的时候,执行`note state` ,然后进入TASK目录复习,复习完毕之后执行`note commit`
+2. 写笔记,执行`note status`确认添加的笔记(该步骤可以跳过),之后执行`note commit`
+3. 每天需要复习笔记的时候,执行`note status` ,然后进入TASK目录复习,复习完毕之后执行`note commit`
 
 ### 创建工作空间
 
