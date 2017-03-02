@@ -1,10 +1,9 @@
 import os
 
-from kit.cached_property import cached_property
-from kit.os.fs import exist_in_or_above
-from kit.pattern import Singleton
-
 from note.infrastructure import config
+from note.utils.cached_property import cached_property
+from note.utils.os.fs import exist_in_or_above
+from note.utils.pattern import Singleton
 
 
 class PathHelper(metaclass=Singleton):

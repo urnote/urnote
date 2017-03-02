@@ -1,12 +1,11 @@
 import unittest
 from unittest.mock import Mock
 
-from kit.pattern import Singleton
-from kit.review_algorithm import Grade
-
 from note.module.element import QA, Command, QAState, StateTransition
 from note.module.qahandler.reviewqahandler import ReviewQAHandler
 from note.module.reviewer import Reviewer
+from note.utils.pattern import Singleton
+from note.utils.review_algorithm import Grade
 
 
 class TestReviewQAHandler_Status(unittest.TestCase):

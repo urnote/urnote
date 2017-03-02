@@ -8,12 +8,11 @@ import unittest
 from unittest.mock import patch, Mock
 
 from integration.config import VIR_ROOT_DIR
-from kit import file_watcher
-from kit.pattern import Singleton
-
 from note.controller import Controller
 from note.factory import (get_purger, get_parser, get_initializer,
                           get_runner, get_logger)
+from note.utils import file_watcher
+from note.utils.pattern import Singleton
 from note.view import RunResultView
 
 

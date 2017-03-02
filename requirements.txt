@@ -1,5 +1,4 @@
 ## ºËÐÄ²¿·Ö
--e git+https://github.com/Jefffffrey/python-kit.git@0.1.0#egg=kit
 colorama==0.3.7
 SQLAlchemy==1.1.3
 

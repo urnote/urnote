@@ -1,12 +1,11 @@
 import os
 import shutil
 
-from kit.os import fs
-from kit.pattern import Singleton
-
 from note.infrastructure import config
 from note.infrastructure.error import CMDError
 from note.module.pathhelper import PathHelper
+from note.utils.os import fs
+from note.utils.pattern import Singleton
 
 
 class FileContentHandler:

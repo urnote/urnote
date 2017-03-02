@@ -10,7 +10,6 @@ from integration.base_test_case import CommandTestCase, WorkspaceTestCase
 from integration.config import (
     VIR_ROOT_DIR, ExpectedDbPath, ExpectedRootDir, VIR_DB_PATH)
 from integration.tools import DBTools
-
 from note.infrastructure.error import CMDError
 from note.module.element import RunResult
 

@@ -1,10 +1,9 @@
-from kit.os import fs
-
 from note.infrastructure.error import FileContentError
 from note.module.element import QAState, QA, Command
 from note.module.filehandler import FileContentHandler
 from note.module.markdown.qa import MarkdownQA
 from note.module.markdown.title_pat import *
+from note.utils.os import fs
 
 
 class MarkdownFileContentHandler(FileContentHandler):

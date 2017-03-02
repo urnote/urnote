@@ -1,11 +1,10 @@
-from kit.os import fs
-from kit.pattern import Singleton
-
 from note.infrastructure.error import CMDError
 from note.module.element import QuestionGroup, RunResult, StateTransition
 from note.module.filehandler import WorkspaceManager
 from note.module.qahandler.purgeqahandler import PurgeQAHandler
 from note.module.qahandler.reviewqahandler import ReviewQAHandler
+from note.utils.os import fs
+from note.utils.pattern import Singleton
 
 
 class Initializer(metaclass=Singleton):

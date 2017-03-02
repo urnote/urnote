@@ -1,8 +1,7 @@
-from kit.pattern import Singleton
-from kit.review_algorithm import Grade
-
 from note.module.element import QAState, QA, StateTransition, Command
 from note.module.reviewer import Reviewer
+from note.utils.pattern import Singleton
+from note.utils.review_algorithm import Grade
 
 
 class ReviewQAHandler(metaclass=Singleton):

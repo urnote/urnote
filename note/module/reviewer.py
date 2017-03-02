@@ -1,6 +1,6 @@
 import datetime
 
-from kit.review_algorithm import ReviewAlgorithm, ReviewInfo
+from note.utils.review_algorithm import ReviewAlgorithm, ReviewInfo
 
 
 class IReviewRecordDB:

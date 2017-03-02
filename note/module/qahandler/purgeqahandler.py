@@ -1,6 +1,5 @@
-from kit.pattern import Singleton
-
 from note.module.element import QA, QAState
+from note.utils.pattern import Singleton
 
 
 class PurgeQAHandler(metaclass=Singleton):

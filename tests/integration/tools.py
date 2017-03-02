@@ -4,9 +4,9 @@ import shutil
 import sys
 from unittest.mock import patch
 
-from integration.config import BASE_DIR, ExpectedRootDir, ExpectedDbPath
 from sqlalchemy import asc
 
+from integration.config import BASE_DIR, ExpectedRootDir, ExpectedDbPath
 from note import __main__
 from note.infrastructure.db import BaseDB, ReviewRecord
 

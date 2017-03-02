@@ -1,10 +1,9 @@
 import sys
 
-from kit.pattern import Singleton
-
 import note
 from note.infrastructure import config
 from note.infrastructure.error import UserError
+from note.utils.pattern import Singleton
 
 
 class Controller(metaclass=Singleton):
