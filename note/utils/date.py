@@ -6,7 +6,20 @@
 
 import datetime
 
-__all__ = ['to_date', 'to_stamp', 'add', 'today']
+__all__ = ['ChinaTz', 'to_date', 'to_stamp', 'add', 'today']
+
+
+class ChinaTz(datetime.tzinfo):
+    """实现北京时间的类"""
+
+    def utcoffset(self, dt):
+        return datetime.timedelta(hours=8)
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
+
+    def tzname(self, dt):
+        return 'UTC+8'
 
 
 def to_date(date):
