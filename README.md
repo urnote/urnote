@@ -1,16 +1,16 @@
-[中文版](./docs/README-中文.md)
+[中文文档](./docs/index.md)
 
 # SmartNote Description
 
 ## Profile
 
-smartnote is a tool  helping you review your notes.
+Smartnote is a tool  helping you review your notes.
 
 If your notes are saved in a file on your computer, and the note's format can be resolved, then you only need to add some simple marks,smartnote will remind you to review them at the right time.
 
 ![example](./docs/res/example.png)
 
-Editor: [Typora](](https://typora.io/))
+Editor: [Typora](https://typora.io/)
 
 ## Quick start
 
