@@ -1,12 +1,6 @@
-"""
-这个包是我在使用python的过程中积累下来的一些可以复用的代码
-当前使用的python版本为python3.5,没有考虑对其他python版本的兼容性
-"""
 import operator
 
 from . import date
-
-__version__ = '0.1.0'
 
 __all__ = ['Base']
 
