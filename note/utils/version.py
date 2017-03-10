@@ -5,7 +5,7 @@ import os
 import subprocess
 from functools import lru_cache
 
-from utils.date import ChinaTz
+from .date import ChinaTz
 
 
 def get_version(version):

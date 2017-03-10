@@ -1,7 +1,7 @@
 import os
 import sys
 
-from utils.version import get_version
+from note.utils.version import get_version
 
 VERSION = (0, 2, 0, 'alpha', 0)
 
