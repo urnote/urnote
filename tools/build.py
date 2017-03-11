@@ -5,6 +5,13 @@ import os
 
 from PyInstaller import __main__
 
+# noinspection PyUnresolvedReferences
+import context
+
+from note.infrastructure import config
+
+assert config.DEBUG is False
+
 
 def join_path(*args):
     path = os.path.join(ROOT_DIR, *args)
@@ -34,11 +41,4 @@ def main():
 
 
 if __name__ == '__main__':
-    import sys
-
-    ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sys.path.insert(0, ROOT_DIR)
-    from note.infrastructure import config
-
-    assert config.DEBUG is False
     main()

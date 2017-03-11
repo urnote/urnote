@@ -5,17 +5,14 @@ import cProfile
 import os
 import pstats
 import shutil
-import sys
 from unittest.mock import patch
 
-try:
-    DIR_PATH = os.path.dirname(os.path.abspath(__file__))
-    ROOT_DIR = os.path.dirname(os.path.dirname(DIR_PATH))
-    sys.path.insert(0, ROOT_DIR)
-finally:
-    from note.utils.os.fs import virtual_workspace
-    from note.utils import suppress_stdout, timeit
-    from note.__main__ import run as run_note
+# noinspection PyUnresolvedReferences
+import context
+
+from note.utils.os.fs import virtual_workspace
+from note.utils import suppress_stdout, timeit
+from note.__main__ import run as run_note
 
 
 def sandbox(func):
