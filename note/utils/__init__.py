@@ -1,8 +1,12 @@
 import operator
+import os as os_
+import sys
+import time
+from contextlib import contextmanager
 
 from . import date
 
-__all__ = ['Base']
+__all__ = ['Base', 'timeit', 'suppress_stdout']
 
 
 class Base:
@@ -50,3 +54,29 @@ class Base:
             result.append(str(slots))
         result.append(str(self.__dict__))
         return '\n'.join(result)
+
+
+def timeit(func):
+    def count(*args, **kwargs):
+        start = time.time()
+        try:
+            res = func(*args, **kwargs)
+        except SystemExit:
+            res = None
+            print('Exit')
+        finally:
+            time_ = time.time() - start
+            count.time = '{:f} ms'.format(1000 * time_)
+        return res
+
+    return count
+
+
+@contextmanager
+def suppress_stdout():
+    stdout = None
+    try:
+        stdout, sys.stdout = sys.stdout, open(os_.devnull, 'w')
+        yield
+    finally:
+        sys.stdout = stdout
