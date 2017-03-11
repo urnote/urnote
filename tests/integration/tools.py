@@ -1,12 +1,11 @@
 import datetime
-import os
 import shutil
 import sys
 from unittest.mock import patch
 
 from sqlalchemy import asc
 
-from integration.config import BASE_DIR, ExpectedRootDir, ExpectedDbPath
+from integration.config import ExpectedRootDir, ExpectedDbPath
 from note import __main__
 from note.infrastructure.db import BaseDB, ReviewRecord
 
@@ -26,10 +25,21 @@ class DBTools(BaseDB):
         records2 = db2._ses.query(ReviewRecord).order_by(
             asc(ReviewRecord.Id)).all()
         assert records1 == records2
+        db1.close()
+        db2.close()
         return records1 == records2
 
 
-def init_case1_pre(path):
+CASE1_PRE_PATH = ExpectedRootDir('case1', 'pre')
+CASE1_STATUS_PATH = ExpectedRootDir('case1', 'after_status')
+CASE1_COMMIT_PATH = ExpectedRootDir('case1', 'after_commit')
+
+CASE1_PRE_DB_PATH = ExpectedDbPath('case1', 'pre')
+CASE1_STATUS_DB_PATH = ExpectedDbPath('case1', 'after_status')
+CASE1_COMMIT_DB_PATH = ExpectedDbPath('case1', 'after_commit')
+
+
+def init_case1_pre_db(path):
     db = DBTools(path=path)
     # id,fd,ef,lt,nt
     rows = [
@@ -55,11 +65,11 @@ def init_case1_pre(path):
     db.close()
 
 
-def init_case1_status(path):
-    init_case1_pre(path)
+def init_case1_status_db(path):
+    init_case1_pre_db(path)
 
 
-def init_case1_commit(path):
+def init_case1_commit_db(path):
     db = DBTools(path=path)
     # id,fd,ef,lt,nt
     rows = [
@@ -86,22 +96,13 @@ def init_case1_commit(path):
     db.close()
 
 
-CASE1_PRE_PATH = BASE_DIR + ExpectedRootDir('case1', 'pre')
-CASE1_STATUS_PATH = BASE_DIR + ExpectedRootDir('case1', 'after_status')
-CASE1_COMMIT_PATH = BASE_DIR + ExpectedRootDir('case1', 'after_commit')
-
-CASE1_PRE_DB_PATH = BASE_DIR + ExpectedDbPath('case1', 'pre')
-CASE1_STATUS_DB_PATH = BASE_DIR + ExpectedDbPath('case1', 'after_status')
-CASE1_COMMIT_DB_PATH = BASE_DIR + ExpectedDbPath('case1', 'after_commit')
-
-
-def create_test_sample1():
+def create_test_sample1(init_db_func):
     shutil.rmtree(CASE1_PRE_PATH + '/.NOTE')
     shutil.rmtree(CASE1_PRE_PATH + '/TASK')
     with patch('os.getcwd', return_value=CASE1_PRE_PATH):
         sys.argv = ['note', 'init']
         __main__.run()
-    init_case1_pre(CASE1_PRE_DB_PATH)
+    init_db_func(CASE1_PRE_DB_PATH)
 
 
 def create_test_sample2():
@@ -120,32 +121,22 @@ def create_test_sample3():
         __main__.run()
 
 
-def create_test_sample():
-    create_test_sample1()
+def create_test_sample(init_db_func):
+    """
+    创建3个用于测试的工作空间
+        1. pre空间中有一些文件,并且数据库信息通过init_db设置
+        2. after_status是在pre中执行status后的状态
+        3. after_commit是在pre中执行commit后的状态
+
+    创建之后应该确保after_status和after_commit中都是正确的,这样才可以用于测试
+    """
+    create_test_sample1(init_db_func)
     create_test_sample2()
     create_test_sample3()
 
-    # os.remove(CASE1_STATUS_DB_PATH)
-    # os.remove(CASE1_COMMIT_DB_PATH)
-    # init_case1_status(CASE1_STATUS_DB_PATH)
-    # init_case1_commit(CASE1_COMMIT_DB_PATH)
-
-
-def init_db():
-    if os.path.exists(CASE1_PRE_DB_PATH):
-        os.remove(CASE1_PRE_DB_PATH)
-    if os.path.exists(CASE1_STATUS_DB_PATH):
-        os.remove(CASE1_STATUS_DB_PATH)
-    if os.path.exists(CASE1_COMMIT_DB_PATH):
-        os.remove(CASE1_COMMIT_DB_PATH)
-    init_case1_pre(CASE1_PRE_DB_PATH)
-    init_case1_status(CASE1_STATUS_DB_PATH)
-    init_case1_commit(CASE1_COMMIT_DB_PATH)
-
 
 if __name__ == '__main__':
-    print('begin')
-    # create_test_sample()
-    # 需要单独执行是因为create时,没有释放数据库连接.
-    init_db()
-    print('end')
+    create_test_sample(init_db_func=init_case1_pre_db)
+    # 确保after_status和after_commit工作空间中的数据库信息是正确的
+    init_case1_status_db(CASE1_STATUS_DB_PATH)
+    init_case1_commit_db(CASE1_COMMIT_DB_PATH)

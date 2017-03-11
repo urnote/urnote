@@ -2,7 +2,7 @@ import unittest
 from argparse import Namespace
 from unittest.mock import Mock
 
-from note.factory import get_parser
+from note.objects import get_parser
 from note.view import RunResultView
 
 

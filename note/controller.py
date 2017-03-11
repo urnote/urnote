@@ -17,9 +17,9 @@ class Controller(metaclass=Singleton):
         self.get_initializer = get_initializer
         self.get_purger = get_purger
 
-    def run(self):
+    def run(self, args=None):
         try:
-            self._run()
+            self._run(args)
         except UserError as err:
             self.view.show_error(exc=err)
         except SystemExit:
@@ -29,9 +29,9 @@ class Controller(metaclass=Singleton):
             self.view.show_error(msg='sorry,程序发生了内部错误')
             raise SystemExit
 
-    def _run(self):
+    def _run(self, args):
         # 如果是--help，会在此处会向stdout输出信息并且抛出exit程序
-        args = self.parser.parse_args(sys.argv[1:])
+        args = self.parser.parse_args(args or sys.argv[1:])
 
         if args.doc:
             self.show_doc()

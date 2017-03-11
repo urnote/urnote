@@ -1,8 +1,9 @@
 """该模块主要提供一些关于文件系统(filesystem)的API"""
 import os
 import platform
-
 import shutil
+from contextlib import ContextDecorator
+from functools import wraps
 
 __all__ = [
     'create_shortcut', 'hidden_dir', 'make_dir_of_file', 'clean_dir',
@@ -212,7 +213,7 @@ def _parser(ignore_patterns):
     return set(dirnames), set(extnames), set(filenames)
 
 
-class virtual_workspace:
+class virtual_workspace(ContextDecorator):
     """创建一个虚拟空间,之后在虚拟空间做的任何操作都会还原到初始状态
 
     原理:
@@ -227,17 +228,16 @@ class virtual_workspace:
     """
 
     def __init__(self, dirname):
-        self.dirname = dirname
-        self.bak_dirname = None
+        self.dirname = os.path.abspath(dirname)
+        self.bak_dirname = os.path.abspath(self.dirname + 'BAK')
 
     def enter(self):
+
         self.dirname = self.dirname.rstrip(r'\/')
         if not os.path.isdir(self.dirname):
             raise NotADirectoryError(self.dirname)
         if not os.path.exists(self.dirname):
             raise FileNotFoundError(self.dirname)
-
-        self.bak_dirname = self.dirname + '_BAK'
 
         if os.path.exists(self.bak_dirname):
             raise FileExistsError(self.bak_dirname)
@@ -255,3 +255,11 @@ class virtual_workspace:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.exit()
+
+    def __call__(self, func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            with self:
+                return func(*args, **kwargs)
+
+        return inner

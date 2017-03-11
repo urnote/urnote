@@ -73,12 +73,16 @@ def get_initializer():
     return initializer
 
 
+_db = None
+
+
 def get_runner():
+    global _db
     try:
-        db = DB(get_path_helper().db_path)
+        _db = DB(get_path_helper().db_path)
     except FileNotFoundError:
         raise CMDError.uninitialized()
-    r = Reviewer(_review_record_db=db)
+    r = Reviewer(_review_record_db=_db)
     title_handler = ReviewQAHandler(reviewer=r)
     runner = Runner(
         qa_handler=title_handler,
@@ -95,6 +99,11 @@ def get_purger():
         get_content_handler=get_content_handler
     )
     return purger
+
+
+def release():
+    if _db:
+        _db.close()
 
 
 if __name__ == '__main__':

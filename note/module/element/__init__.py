@@ -159,3 +159,6 @@ class RunResult(Base):
         if num:
             self.new_qs_each_file.append(new_qs)
             self.new_num += num
+
+    def __repr__(self):
+        return str(list(self.__dict__.items()))

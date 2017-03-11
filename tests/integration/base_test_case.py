@@ -1,5 +1,5 @@
 import datetime
-import gc
+import filecmp
 import importlib
 import logging
 import os
@@ -7,11 +7,12 @@ import shutil
 import unittest
 from unittest.mock import patch, Mock
 
-from integration.config import VIR_ROOT_DIR
+from integration.config import ExpectedRootDir, ExpectedDbPath
+from integration.tools import DBTools
 from note.controller import Controller
-from note.factory import (get_purger, get_parser, get_initializer,
-                          get_runner, get_logger)
-from note.utils import file_watcher
+from note.objects import (get_purger, get_parser, get_initializer,
+                          get_runner, get_logger, release)
+from note.utils.os.fs import virtual_workspace
 from note.utils.pattern import Singleton
 from note.view import RunResultView
 
@@ -22,6 +23,11 @@ class CommandTestCase(unittest.TestCase):
     def setUp(self):
         """初始化环境,保证每一组测试开始时,vir_env包含res中的文件"""
         self.mock_view = Mock(spec=RunResultView)
+
+    def tearDown(self):
+        Singleton.clear()
+        importlib.reload(logging)
+        self.mock_view.reset_mock()
 
     def run_app(self, command):
         import sys
@@ -34,13 +40,7 @@ class CommandTestCase(unittest.TestCase):
             get_initializer=get_initializer
         )
         self.controller.run()
-
-    def tearDown(self):
-        Singleton.clear()
-        importlib.reload(logging)
-        self.mock_view.reset_mock()
-        del self.controller
-        gc.collect()
+        release()
 
 
 class Enumeration(type):
@@ -61,39 +61,83 @@ class NewDate(datetime.date, metaclass=Enumeration):
         return cls(2016, 11, 13)
 
 
-class WorkspaceTestCase(CommandTestCase):
-    """工作空间下行为测试
-
-    会在当前目录下创建一个vir_env目录，结束后删除。重设程序当前工作空间为vir_env目录
-    """
+class EmptyWorkspaceTestCase(CommandTestCase):
+    TEMP_PATH = os.path.abspath('TEMPDIR')
 
     def setUp(self):
         """初始化环境,保证每一组测试开始时,vir_env包含res中的文件"""
         super().setUp()
-        self.patcher1 = patch('os.getcwd', return_value=VIR_ROOT_DIR)
-        self.patcher1.start()
-
-        datetime.date = NewDate
-        assert datetime.date.today() == datetime.date(2016, 11, 13)
-
-        file_watcher.watch()
-        if os.path.exists(VIR_ROOT_DIR):
-            shutil.rmtree(VIR_ROOT_DIR)
-        os.mkdir(VIR_ROOT_DIR)
+        os.mkdir(self.TEMP_PATH)
+        self.patcher = patch('os.getcwd', return_value=self.TEMP_PATH)
+        self.patcher.start()
 
     def tearDown(self):
-        file_watcher.close_all(echo=False)
-        self.patcher1.stop()
+        shutil.rmtree(self.TEMP_PATH)
+        self.patcher.stop()
         super().tearDown()
 
-        # 删除的时候,由于logger还存在了对该文件的引用,所以会报
-        # [WinError 32] 另一个程序正在使用此文件，进程无法访问
 
-        # reload之后不再有logger对文件引用,但是下面3个类的对象引用了,
-        # 目前不知道为什么,需要自己手动关闭:
-        # {<class '_io.FileIO'>, <class '_io.TextIOWrapper'>,
-        # <class '_io.BufferedWriter'>}
+class WorkspaceTestCases:
+    """
+    嵌套的原因:http://stackoverflow.com/questions/1323455/python-unit-test-with-base-and-sub-class
+    """
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(VIR_ROOT_DIR)
+    class WorkspaceTestCase(CommandTestCase):
+        """工作空间下行为测试
+
+        会在当前目录下创建一个vir_env目录，结束后删除。重设程序当前工作空间为vir_env目录
+        """
+
+        CASE_NAME = None
+
+        @classmethod
+        def setUpClass(cls):
+            cls.virtual_workspace = virtual_workspace(
+                ExpectedRootDir(cls.CASE_NAME, 'pre')
+            )
+
+        def _compare_workspace(self, workspace):
+            # 比较工作空间中的文件是否都一样
+            d = filecmp.dircmp(self.root_path,
+                               ExpectedRootDir(self.CASE_NAME, workspace),
+                               ignore=['note.db3'])
+            self.assertFalse(d.diff_files)
+            equal = DBTools.cmp_db(self.db_path,
+                                   ExpectedDbPath(self.CASE_NAME, workspace))
+            self.assertTrue(equal)
+
+        def test_status(self):
+            self.run_app('status')
+
+            # check
+            self._check_status()
+            self._compare_workspace('after_status')
+
+        def _check_status(self):
+            raise NotImplementedError
+
+        def test_commit(self):
+            self.run_app('commit')
+
+            # check
+            self._check_commit()
+            self._compare_workspace('after_commit')
+
+        def _check_commit(self):
+            raise NotImplementedError
+
+        def setUp(self):
+            """初始化环境,保证每一组测试开始时,vir_env包含res中的文件"""
+            super().setUp()
+            self.root_path = self.virtual_workspace.enter()
+            self.db_path = os.path.join(self.root_path, '.NOTE', 'note.db3')
+            self.patcher = patch('os.getcwd', return_value=self.root_path)
+            self.patcher.start()
+
+            datetime.date = NewDate
+            assert datetime.date.today() == datetime.date(2016, 11, 13)
+
+        def tearDown(self):
+            self.patcher.stop()
+            self.virtual_workspace.exit()
+            super().tearDown()

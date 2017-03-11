@@ -50,7 +50,7 @@ class BaseDB:
         self._ses = _Class()
 
     def close(self):
-        self._eng.dispose()
+        self._ses.close()
 
 
 class DB(BaseDB, IReviewRecordDB):
