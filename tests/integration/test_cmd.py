@@ -39,7 +39,8 @@ class InitTest(EmptyWorkspaceTestCase):
         self.run_app('init')
 
         # check
-        expected = [call.show_error(exc=CMDError(CMDError.INIT_CMD_ERROR, ))]
+        expected = [call.show_error(exc=CMDError(CMDError.INIT_CMD_ERROR,
+                                                 root_dir=self.TEMP_PATH))]
         self.assertEqual(self.mock_view.method_calls, expected)
 
 

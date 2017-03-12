@@ -73,12 +73,10 @@ class ArgParserError(UserError):
 
 
 class CMDError(UserError):
-    get_path_helper = None
-
     INIT_CMD_ERROR = ErrorMessage(
         description=(
             '无法使用命令"init"创建重复或嵌套的工作空间,'
-            '已存在工作空间:{self.path_helper.root_dir}'.format),
+            '已存在工作空间:{self.root_dir}'.format),
         solution=''
     )
 
@@ -101,8 +99,8 @@ class CMDError(UserError):
     )
 
     @classmethod
-    def duple_init(cls):
-        return cls(cls.INIT_CMD_ERROR)
+    def duple_init(cls, root_dir):
+        return cls(cls.INIT_CMD_ERROR, root_dir=root_dir)
 
     @classmethod
     def uninitialized(cls):
@@ -116,15 +114,10 @@ class CMDError(UserError):
     def file_not_in_current_workspace(cls):
         return cls(cls.FILE_NOT_IN_CURRENT_WORKSPACE)
 
-    def __init__(self, error_msg=None):
+    def __init__(self, error_msg=None, root_dir=None):
         self.msg = error_msg
-        self.path_helper = None
+        self.root_dir = root_dir
 
     @property
     def message(self) -> tuple:
-        assert self.get_path_helper is not None
-        self.path_helper = CMDError.get_path_helper()
         return super().message
-
-    def __hash__(self):
-        return hash((self.msg, self.path_helper))

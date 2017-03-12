@@ -1,6 +1,7 @@
 import argparse
 import gettext
 
+from note.controller import Controller
 from note.infrastructure import config
 from note.infrastructure.db import DB
 from note.infrastructure.error import CMDError
@@ -13,6 +14,7 @@ from note.module.pathhelper import PathHelper
 from note.module.qahandler.purgeqahandler import PurgeQAHandler
 from note.module.qahandler.reviewqahandler import ReviewQAHandler
 from note.module.reviewer import Reviewer
+from note.view import RunResultView
 
 
 def get_logger():
@@ -99,6 +101,16 @@ def get_purger():
         get_content_handler=get_content_handler
     )
     return purger
+
+
+def get_controller():
+    view = RunResultView()
+    controller = Controller(
+        view=view, logger=get_logger(), parser=get_parser(view),
+        get_purger=get_purger, get_runner=get_runner,
+        get_initializer=get_initializer
+    )
+    return controller
 
 
 def release():

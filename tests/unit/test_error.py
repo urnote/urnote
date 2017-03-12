@@ -1,9 +1,7 @@
 import unittest
-from unittest.mock import Mock
 
 from note.infrastructure.error import (
     FileContentError, ArgParserError, CMDError)
-from note.module.pathhelper import PathHelper
 
 
 class MyTestCase(unittest.TestCase):
@@ -25,23 +23,11 @@ class MyTestCase(unittest.TestCase):
             raise ArgParserError('***')
         self.assertMessageEqual('***', '输入"note --help"查看帮助信息')
 
-    def test_cmd_error1(self):
-        with self.assertRaises(AssertionError):
-            err = CMDError.duple_init()
-            getattr(err, 'message')
-
-    def test_cmd_error2(self):
-        def get_path_helper():
-            path_helper = Mock(spec=PathHelper)
-            path_helper.root_dir = 'root_dir'
-            return path_helper
-
-        CMDError.get_path_helper = get_path_helper
-
+    def test_cmd_error(self):
         with self.assertRaises(CMDError) as self.err:
-            raise CMDError.duple_init()
+            raise CMDError.duple_init(root_dir='ROOT_DIR')
         self.assertMessageEqual(
-            '无法使用命令"init"创建重复或嵌套的工作空间,已存在工作空间:root_dir',
+            '无法使用命令"init"创建重复或嵌套的工作空间,已存在工作空间:ROOT_DIR',
             ''
         )
 

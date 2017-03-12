@@ -45,7 +45,7 @@ class WorkspaceManager(metaclass=Singleton):
             path: 在path目录下建立工作空间,默认为当前工作空间
         """
         if self.path_helper.root_dir:
-            raise CMDError.duple_init()
+            raise CMDError.duple_init(root_dir=self.path_helper.root_dir)
         path_helper = PathHelper()
         if path is None:
             path_helper.root_dir = os.getcwd()
