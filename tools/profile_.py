@@ -29,9 +29,11 @@ def sandbox(func):
     return wrap
 
 
+@sandbox
 def profile_run(*args):
-    with suppress_stdout():
-        cProfile.run('time_run()'.format(*args), 'prof.txt')
+    # with suppress_stdout():
+    print('run_note({})'.format(args))
+    cProfile.run('run_note({})'.format(args), 'prof.txt')
     p = pstats.Stats("prof.txt")
     p.sort_stats('time').print_stats()
 
@@ -48,6 +50,13 @@ def run_all():
     time_run()
     time_run('--help')
     time_run('status')
+
+
+def profile_memory(*args):
+    import objgraph
+    run_note(args)
+    objgraph.show_most_common_types(limit=30)
+    # objgraph.show_refs([controller], max_depth=6)
 
 
 if __name__ == '__main__':

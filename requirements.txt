@@ -7,3 +7,4 @@ SQLAlchemy==1.1.3
 ## 如果要使用tools文件夹中的工具,需要安装额外的包
 PyInstaller==3.2
 prettytable==0.7.2
+objgraph
