@@ -53,7 +53,7 @@ class TestReviewQAHandler_Status(unittest.TestCase):
         qas = QA("# chapter", "内容", 1, QAState.OLD, None, None)
         self.mock_view.need_review.return_value = True
         expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None, None)
-        transition = StateTransition.TO_NEED_REVIEWED
+        transition = StateTransition.OLD_TO_NEED_REVIEWED
         self._check(qas, expected, transition)
         self.mock_view.need_review.assert_called_once_with(1)
 
@@ -64,16 +64,16 @@ class TestReviewQAHandler_Status(unittest.TestCase):
         self._check(qas, expected, transition)
 
     def test_need_reviewed_with_V(self):
-        qas = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.YES, None)
-        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.YES,
+        qas = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.REMEMBER, None)
+        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.REMEMBER,
                       None)
         transition = StateTransition.NEED_REVIEWED_TO_OLD
         self._check(qas, expected, transition)
         self.assertFalse(self.mock_view.review.called)
 
     def test_need_reviewed_with_X(self):
-        qas = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.NO, None)
-        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.NO,
+        qas = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.FORGET, None)
+        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.FORGET,
                       None)
         transition = StateTransition.NEED_REVIEWED_TO_OLD
         self._check(qas, expected, transition)
@@ -107,7 +107,7 @@ class TestReviewQAHandler_Status(unittest.TestCase):
         self.mock_view.need_review.return_value = True
         expected = QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE,
                       None)
-        transition = StateTransition.TO_NEED_REVIEWED
+        transition = StateTransition.OLD_TO_NEED_REVIEWED
         self._check(qas, expected, transition)
         self.mock_view.need_review.assert_called_once_with(1)
 
@@ -163,7 +163,7 @@ class TestReviewQAHandler_Commit(unittest.TestCase):
         qas = QA("# chapter", "内容", 1, QAState.OLD, None, None)
         self.mock_view.need_review.return_value = True
         expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None, None)
-        transition = StateTransition.TO_NEED_REVIEWED
+        transition = StateTransition.OLD_TO_NEED_REVIEWED
         self._check(qas, expected, transition)
         self.mock_view.need_review.assert_called_once_with(1)
 
@@ -174,14 +174,14 @@ class TestReviewQAHandler_Commit(unittest.TestCase):
         self._check(qas, expected, transition)
 
     def test_need_reviewed_with_V(self):
-        qas = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.YES, None)
+        qas = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.REMEMBER, None)
         expected = QA("# chapter", "内容", 1, QAState.OLD, None, None)
         transition = StateTransition.NEED_REVIEWED_TO_OLD
         self._check(qas, expected, transition)
         self.mock_view.review.assert_called_once_with(1, Grade.EASY, time=None)
 
     def test_need_reviewed_with_X(self):
-        qas = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.NO, None)
+        qas = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.FORGET, None)
         expected = QA("# chapter", "内容", 1, QAState.OLD, None, None)
         transition = StateTransition.NEED_REVIEWED_TO_OLD
         self._check(qas, expected, transition)
@@ -214,7 +214,7 @@ class TestReviewQAHandler_Commit(unittest.TestCase):
         qas = QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE, None)
         self.mock_view.need_review.return_value = True
         expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None, None)
-        transition = StateTransition.TO_NEED_REVIEWED
+        transition = StateTransition.OLD_TO_NEED_REVIEWED
         self._check(qas, expected, transition)
         self.mock_view.need_review.assert_called_once_with(1)
 

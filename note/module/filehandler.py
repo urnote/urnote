@@ -33,8 +33,11 @@ class WorkspaceManager(metaclass=Singleton):
                 dirpath=self.path_helper.root_dir,
                 ignore_patterns=config.IGNORE_FILES,
                 ignore_patterns_filepath=self.path_helper.ignore_path):
-            relpath = self.path_helper.calc_relpath(abspath)
-            yield relpath, abspath
+            yield abspath
+
+    def get_relpath(self, path):
+        """得到path在工作空间下的相对路径"""
+        return os.path.relpath(path, self.path_helper.root_dir)
 
     def create_shortcut(self, path):
         fs.create_shortcut(path, self.path_helper.task_path)
@@ -125,5 +128,7 @@ class WorkspaceManager(metaclass=Singleton):
                 dirpath=self.path_helper.root_dir,
                 ignore_patterns=config.IGNORE_FILES,
                 ignore_patterns_filepath=self.path_helper.ignore_path):
-            relpath = self.path_helper.calc_relpath(abspath)
-            yield relpath, abspath
+            yield abspath
+
+    def clean_task_dir(self):
+        fs.clean_dir(self.path_helper.task_path)

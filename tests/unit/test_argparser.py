@@ -3,12 +3,12 @@ from argparse import Namespace
 from unittest.mock import Mock
 
 from note.objects import get_parser
-from note.view import RunResultView
+from note.view import View
 
 
 class MyTestCase(unittest.TestCase):
     def setUp(self):
-        self.mock_view = Mock(spec=RunResultView)
+        self.mock_view = Mock(spec=View)
         self.parser = get_parser(self.mock_view)
 
     def tearDown(self):

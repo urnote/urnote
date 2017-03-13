@@ -14,7 +14,7 @@ class MarkdownFileContentHandler(FileContentHandler):
             try:
                 self._raw_file_content = fo.read()
             except:
-                raise FileContentError.wrong_file(self._relpath)
+                raise FileContentError.wrong_encoding(self._relpath)
         self._toc = self._get_toc_part(self._raw_file_content)
 
     @staticmethod
@@ -158,7 +158,7 @@ class MarkdownFileContentHandler(FileContentHandler):
                             raise ValueError
                     except ValueError:
                         raise FileContentError.wrong_command(
-                            relative_path=self._relpath,
+                            location=self._relpath,
                             question=qa.question,
                             grade=interval)
                     qa.command = Command.ADD
@@ -180,7 +180,7 @@ class MarkdownFileContentHandler(FileContentHandler):
                             qa.command = Command.CONTINUE
                         else:
                             raise FileContentError.wrong_command(
-                                relative_path=self._relpath,
+                                location=self._relpath,
                                 question=qa.question, grade=cmd_string)
                 return
         else:
@@ -189,14 +189,14 @@ class MarkdownFileContentHandler(FileContentHandler):
 
     def _map_review_command(self, command):
         if command in 'XxＸｘ':
-            command = Command.NO
+            command = Command.FORGET
         elif command in 'VvＶｖ':
-            command = Command.YES
+            command = Command.REMEMBER
         elif command in 'PpＰｐ':
             command = Command.PAUSE
         else:
             raise FileContentError.wrong_command(
-                relative_path=self._relpath, grade=command)
+                location=self._relpath, grade=command)
         return command
 
     def save_qas(self, qas, path=None):
@@ -235,8 +235,8 @@ class MarkdownFileContentHandler(FileContentHandler):
         if qa.state == QAState.NEED_REVIEWED:
             if qa.command:
                 command = {
-                    Command.YES: 'V',
-                    Command.NO: 'X',
+                    Command.REMEMBER: 'V',
+                    Command.FORGET: 'X',
                     Command.PAUSE: 'P',
                 }[qa.command]
                 return NEED_REVIEWED_TITLE(

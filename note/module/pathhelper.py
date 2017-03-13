@@ -8,7 +8,7 @@ from note.utils.pattern import Singleton
 
 class PathHelper(metaclass=Singleton):
     """
-    提供文件的绝对路径以及创建项目的文件结构
+    提供工作空间中程序文件的绝对路径
     """
 
     def __init__(self):
@@ -60,7 +60,3 @@ class PathHelper(metaclass=Singleton):
             return os.path.join(self._root_dir, path)
         else:
             raise FileNotFoundError
-
-    def calc_relpath(self, path):
-        """得到path在工作空间下的相对路径"""
-        return os.path.relpath(path, self._root_dir)

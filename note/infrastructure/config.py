@@ -3,17 +3,14 @@ import sys
 
 DEBUG = True
 
-# APP配置
-APP_NAME = 'smart note'
-# 用于表示控制台程序输入时的程序名
-APP_NAME_ABBR = 'note'
+APP_NAME = 'note'
 
-# 文件配置,均是基于根目录
+# 工作空间下的文件夹
 APP_DATE_DIR_NAME = '.NOTE'
 TASK_DIR_NAME = 'TASK'
 PURGE_DIR_NAME = 'PURGE'
 
-# 均为相对路径
+# 工作空间下的文件
 DB_PATH = os.path.join(APP_DATE_DIR_NAME, 'note.db3')
 LOG_PATH = os.path.join(APP_DATE_DIR_NAME, 'log.txt')
 CONFIG_PATH = os.path.join(APP_DATE_DIR_NAME, 'conf.txt')

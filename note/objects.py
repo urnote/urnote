@@ -14,7 +14,8 @@ from note.module.pathhelper import PathHelper
 from note.module.qahandler.purgeqahandler import PurgeQAHandler
 from note.module.qahandler.reviewqahandler import ReviewQAHandler
 from note.module.reviewer import Reviewer
-from note.view import RunResultView
+from note.module.visitor import StatusResultVisitor, CommitResultVisitor
+from note.view import View
 
 
 def get_logger():
@@ -50,7 +51,7 @@ def get_parser(view):
 
     sp = parser.add_subparsers(help='子命令', dest='cmd')
 
-    sp.add_parser('init', help="在当前目录创建工作空间".format(config.APP_NAME))
+    sp.add_parser('init', help="在当前目录创建工作空间")
     sp.add_parser('status', help="显示工作空间状态信息")
 
     commit_parser = sp.add_parser('commit', help="提交")
@@ -103,12 +104,22 @@ def get_purger():
     return purger
 
 
+def get_status_result_visitor():
+    return StatusResultVisitor()
+
+
+def get_commit_result_visitor():
+    return CommitResultVisitor()
+
+
 def get_controller():
-    view = RunResultView()
+    view = View()
     controller = Controller(
         view=view, logger=get_logger(), parser=get_parser(view),
         get_purger=get_purger, get_runner=get_runner,
-        get_initializer=get_initializer
+        get_initializer=get_initializer,
+        get_status_result_visitor=get_status_result_visitor,
+        get_commit_result_visitor=get_commit_result_visitor
     )
     return controller
 

@@ -45,15 +45,16 @@ class Base:
     def __hash__(self):
         """如果要实现集合，字典键等地方的相等性判断需要实现该方法"""
 
-    def __str__(self):
-        result = []
+    def __repr__(self):
+        attr_value_map = {}
         if hasattr(self, "__slots__"):
-            attr_getters = [operator.attrgetter(attr) for attr in
-                            self.__slots__]
-            slots = [getter(self) for getter in attr_getters]
-            result.append(str(slots))
-        result.append(str(self.__dict__))
-        return '\n'.join(result)
+            for attr in self.__slots__:
+                attr_value_map[attr] = getattr(self, attr)
+        for key, value in self.__dict__.items():
+            attr_value_map[key] = value
+        return str(attr_value_map)
+
+    __str__ = __repr__
 
 
 def timeit(func):

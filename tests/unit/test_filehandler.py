@@ -63,14 +63,14 @@ class TestMarkdownFileHandler_Get_Qas(TestMarkdownFileHandler):
         content = "# chapter    [:notification:](SOH0000001EOT)  V\n" \
                   "内容"
         expected = [
-            QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.YES, None)]
+            QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.REMEMBER, None)]
         self._check(content, expected)
 
     def test_need_reviewed_with_X(self):
         content = "# chapter    [:notification:](SOH0000001EOT)  X\n" \
                   "内容"
         expected = [
-            QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.NO, None)]
+            QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.FORGET, None)]
         self._check(content, expected)
 
     def test_need_reviewed_with_P(self):
@@ -151,14 +151,14 @@ class TestMarkdownFileHandler_Save_Qas(TestMarkdownFileHandler):
 
     def test_need_reviewed_with_V(self):
         qas = [
-            QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.YES, None)]
+            QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.REMEMBER, None)]
         expected = "# chapter    [:notification:](SOH0000001EOT)  \u200bV\n" \
                    "内容"
         self._check(expected, qas)
 
     def test_need_reviewed_with_X(self):
         qas = [
-            QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.NO, None)]
+            QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.FORGET, None)]
         expected = "# chapter    [:notification:](SOH0000001EOT)  \u200bX\n" \
                    "内容"
         self._check(expected, qas)

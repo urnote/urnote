@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 # noinspection PyUnresolvedReferences
 import context
+from note.infrastructure import config
 
 from note.utils.os.fs import virtual_workspace
 from note.utils import suppress_stdout, timeit
@@ -32,7 +33,6 @@ def sandbox(func):
 @sandbox
 def profile_run(*args):
     # with suppress_stdout():
-    print('run_note({})'.format(args))
     cProfile.run('run_note({})'.format(args), 'prof.txt')
     p = pstats.Stats("prof.txt")
     p.sort_stats('time').print_stats()
@@ -59,5 +59,11 @@ def profile_memory(*args):
     # objgraph.show_refs([controller], max_depth=6)
 
 
+@sandbox
+def run(*args):
+    run_note(args)
+
+
 if __name__ == '__main__':
-    profile_run()
+    assert config.DEBUG is True
+    run()

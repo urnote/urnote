@@ -1,72 +1,103 @@
-import colorama
-
-from note.infrastructure import stdouthelper
 from note.infrastructure.error import UserError
-from note.module.element import RunResult
+from note.infrastructure.stdouthelper import StdoutHelper
+from note.module.visitor import ReportAfterStatus, LocatedQuestions, \
+    ReportAfterCommit
+
+LOCATION_MSG = '    {location}:\n'.format
+QUESTION_MSG = '        {question}\n'.format
 
 
-class RunResultView:
+def _truncate(msg, length=80):
+    assert len(msg) > 0
+
+    endswith_newline = False
+    if msg[-1] == '\n':
+        endswith_newline = True
+        msg = msg[:-1]
+    if len(msg) > length:
+        msg = msg[:length - 3] + '...'
+    return msg + ('\n' if endswith_newline else '')
+
+
+def _create_location_msg(location):
+    msg = LOCATION_MSG(location=location)
+    return _truncate(msg)
+
+
+def _create_question_msg(question):
+    msg = QUESTION_MSG(question=question)
+    return _truncate(msg)
+
+
+class View:
     def __init__(self):
-        # 控制台的字体颜色初始化
-        colorama.init()
+        self.stdouthelper = StdoutHelper()
 
-    def show_run_result(self, result: RunResult):
+    def show(self, msg):
+        self.stdouthelper.print_white('\n{}\n'.format(msg))
+
+    def show_report_after_status(self, result: ReportAfterStatus):
         self._show_new_info(result)
         self._show_reviewed_info(result)
-        self._show_need_reviewed_info(result)
         self._show_paused_info(result)
+        self._show_need_reviewed_info(result)
 
-    @staticmethod
-    def _show_paused_info(result):
-        if result.paused_num:
-            stdouthelper.print_blue(
-                '\n{} 个问题暂停复习\n'.format(result.paused_num))
+    def _show_new_info(self, result):
+        self._show_report(result.new_qs_report, action='新增')
 
-    @staticmethod
-    def _show_need_reviewed_info(result):
+    def _show_reviewed_info(self, result):
+        self._show_report(result.reviewed_qs_report, action='复习')
+
+    def _show_paused_info(self, result):
+        self._show_report(result.paused_qs_report, action='暂停')
+
+    def _show_need_reviewed_info(self, result):
         if result.need_reviewed_num:
-            stdouthelper.print_blue(
+            self.stdouthelper.print_blue(
                 '\n{} 个问题需要复习\n'.format(result.need_reviewed_num))
 
-    @staticmethod
-    def _show_reviewed_info(result):
-        if result.reviewed_num:
-            stdouthelper.print_blue(
-                '\n本次复习了 {} 个问题:\n'.format(result.reviewed_num))
-            for group in result.reviewed_qs_each_file:
-                relative_path, reviewed_qs = (
-                    group.relative_path, group.questions)
-                stdouthelper.print_green(
-                    '    {relative_path}:\n'.format(
-                        relative_path=relative_path))
-                for reviewed_q in reviewed_qs:
-                    stdouthelper.print_yellow(
-                        '    {:4}{}\n'.format('', reviewed_q))
+    def _show_report(self, report, action):
+        """
+        Args:
+            report: 一个LocatedQuestions列表
+            action:
+        """
+        assert action is not None
 
-    @staticmethod
-    def _show_new_info(result):
+        if len(report):
+            total = sum(
+                len(located_questions.qs) for located_questions in report
+            )
+            self.stdouthelper.print_blue(
+                '\n{}了 {} 个问题:\n'.format(action, total))
+
+            for located_questions in report:
+                assert isinstance(located_questions, LocatedQuestions)
+
+                location_msg = _create_location_msg(
+                    location=located_questions.location)
+                self.stdouthelper.print_green(location_msg)
+
+                for q in located_questions.qs:
+                    question_msg = _create_question_msg(question=q)
+                    self.stdouthelper.print_yellow(question_msg)
+
+    def show_report_after_commit(self, result: ReportAfterCommit):
         if result.new_num:
-            stdouthelper.print_blue(
-                '\n本次新增 {} 个问题:\n'.format(result.new_num))
-            for group in result.new_qs_each_file:
-                relative_path, new_qs = group.relative_path, group.questions
-                stdouthelper.print_green(
-                    '    {relative_path}:\n'.format(
-                        relative_path=relative_path))
-                for new_q in new_qs:
-                    stdouthelper.print_yellow('    {:4}{}\n'.format('', new_q))
+            self._show_summary('新增', result.new_num)
+        if result.reviewed_num:
+            self._show_summary('复习', result.reviewed_num)
+        if result.paused_num:
+            self._show_summary('暂停', result.paused_num)
+        self._show_need_reviewed_info(result)
 
-    @staticmethod
-    def show_error(exc: UserError = None, msg=''):
+    def _show_summary(self, action, total):
+        self.stdouthelper.print_blue(
+            '\n{}了 {} 个问题'.format(action, total))
+
+    def show_error(self, exc: UserError = None, msg=''):
         if exc:
-            stdouthelper.print_red('\n{}\n'.format('\n'.join(exc.message)))
+            assert msg is '', '不能同时传递2个参数'
+            self.stdouthelper.print_red('\n{}\n'.format('\n'.join(exc.message)))
         elif msg:
-            stdouthelper.print_red('\n{}\n'.format(msg))
-
-    @staticmethod
-    def show_prompt(msg):
-        stdouthelper.print_white('\n{}\n'.format(msg))
-
-    @staticmethod
-    def show_doc(doc):
-        stdouthelper.print_white(doc)
+            self.stdouthelper.print_red('\n{}\n'.format(msg))

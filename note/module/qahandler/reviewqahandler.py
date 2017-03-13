@@ -35,12 +35,12 @@ class ReviewQAHandler(metaclass=Singleton):
         id_ = qa.id
         if self._reviewer.need_review(id_):
             qa.state = QAState.NEED_REVIEWED
-            return StateTransition.TO_NEED_REVIEWED
+            return StateTransition.OLD_TO_NEED_REVIEWED
 
     def _handle_need_reviewed(self, commit, qa, time):
-        if qa.command == Command.YES:
+        if qa.command == Command.REMEMBER:
             grade = Grade.EASY
-        elif qa.command == Command.NO:
+        elif qa.command == Command.FORGET:
             grade = Grade.FORGOTTEN
         elif qa.command == Command.PAUSE:
             if commit:

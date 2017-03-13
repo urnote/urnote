@@ -11,10 +11,11 @@ from integration.config import ExpectedRootDir, ExpectedDbPath
 from integration.tools import DBTools
 from note.controller import Controller
 from note.objects import (get_purger, get_parser, get_initializer,
-                          get_runner, get_logger, release)
+                          get_runner, get_logger, release,
+                          get_status_result_visitor, get_commit_result_visitor)
 from note.utils.os.fs import virtual_workspace
 from note.utils.pattern import Singleton
-from note.view import RunResultView
+from note.view import View
 
 
 class CommandTestCase(unittest.TestCase):
@@ -22,7 +23,7 @@ class CommandTestCase(unittest.TestCase):
 
     def setUp(self):
         """初始化环境,保证每一组测试开始时,vir_env包含res中的文件"""
-        self.mock_view = Mock(spec=RunResultView)
+        self.mock_view = Mock(spec=View)
 
     def tearDown(self):
         Singleton.clear()
@@ -37,7 +38,9 @@ class CommandTestCase(unittest.TestCase):
             view, get_logger(), get_parser(view),
             get_purger=get_purger,
             get_runner=get_runner,
-            get_initializer=get_initializer
+            get_initializer=get_initializer,
+            get_status_result_visitor=get_status_result_visitor,
+            get_commit_result_visitor=get_commit_result_visitor
         )
         self.controller.run()
         release()

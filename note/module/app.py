@@ -1,9 +1,9 @@
 from note.infrastructure.error import CMDError
-from note.module.element import QuestionGroup, RunResult, StateTransition
+from note.module.element import (AllNoteHandleResults, StateTransition,
+                                 OneNoteHandleResult)
 from note.module.filehandler import WorkspaceManager
 from note.module.qahandler.purgeqahandler import PurgeQAHandler
 from note.module.qahandler.reviewqahandler import ReviewQAHandler
-from note.utils.os import fs
 from note.utils.pattern import Singleton
 
 
@@ -23,41 +23,55 @@ class Runner(metaclass=Singleton):
         self._get_content_handler = get_content_handler
 
     def run(self, commit=True, time=None):
-        fs.clean_dir(self._workspace_manger.path_helper.task_path)
-        return self._handle_each_file(commit, time)
+        self._workspace_manger.clean_task_dir()
+        return self._handle_all(commit, time)
 
-    def _handle_each_file(self, commit, time):
-        result = RunResult()
-        for relpath, abspath in self._workspace_manger.get_paths():
-            content_handler = self._get_content_handler(abspath, relpath)
-            qas = list(content_handler.get_qas())
+    def _handle_all(self, commit, time):
+        results = AllNoteHandleResults()
+        for abspath in self._workspace_manger.get_paths():
+            result = self._handle_one(abspath, commit, time)
+            if result:
+                results.add(result)
+        return results
 
-            # 新添加的question和复习了的question
-            new_qs = []
-            reviewed_qs = []
-            for qa in qas:
-                state_transition = self._qa_handler.handle(qa, commit, time)
-                if state_transition == StateTransition.NEW_TO_OLD:
-                    new_qs.append(str(qa))
-                elif state_transition in (
-                        StateTransition.TO_NEED_REVIEWED,
-                        StateTransition.STILL_NEED_REVIEWED):
-                    result.need_reviewed_num += 1
-                    self._workspace_manger.create_shortcut(abspath)
-                elif state_transition == StateTransition.NEED_REVIEWED_TO_OLD:
-                    reviewed_qs.append(str(qa))
-                elif state_transition == \
-                        StateTransition.NEED_REVIEWED_TO_PAUSED_OLD:
-                    result.paused_num += 1
-                else:
-                    pass
+    def _handle_one(self, abspath, commit, time):
+        content_handler = self._get_content_handler(
+            abspath, self._workspace_manger.get_relpath(abspath))
+        qas = list(content_handler.get_qas())
 
-            result.add_new_qs(QuestionGroup(relpath, new_qs))
-            result.add_reviewed_qs(QuestionGroup(relpath, reviewed_qs))
+        new_qs = []
+        need_reviewed_qs = []
+        reviewed_qs = []
+        paused_qs = []
 
-            content_handler.save_qas(qas)
+        for qa in qas:
+            state_transition = self._qa_handler.handle(qa, commit, time)
+            if state_transition == StateTransition.NEW_TO_OLD:
+                new_qs.append(str(qa))
+            elif state_transition in (
+                    StateTransition.OLD_TO_NEED_REVIEWED,
+                    StateTransition.STILL_NEED_REVIEWED):
+                need_reviewed_qs.append(str(qa))
+                self._workspace_manger.create_shortcut(abspath)
+            elif state_transition == StateTransition.NEED_REVIEWED_TO_OLD:
+                reviewed_qs.append(str(qa))
+            elif state_transition == \
+                    StateTransition.NEED_REVIEWED_TO_PAUSED_OLD:
+                paused_qs.append(str(qa))
+            else:
+                pass
 
-        return result
+        content_handler.save_qas(qas)
+
+        if any((new_qs, need_reviewed_qs, reviewed_qs, paused_qs)):
+            result = OneNoteHandleResult(
+                location=self._workspace_manger.get_relpath(abspath),
+                new_qs=new_qs,
+                need_reviewed_qs=need_reviewed_qs,
+                reviewed_qs=reviewed_qs,
+                paused_qs=paused_qs)
+            return result
+        return None
 
 
 class Purger(metaclass=Singleton):
@@ -91,8 +105,8 @@ class Purger(metaclass=Singleton):
         self._purge()
 
     def _purge(self):
-        for relpath, path in self._workspace_manger.get_paths_in_purge():
-            content_handler = self._get_content_handler(path)
+        for abspath in self._workspace_manger.get_paths_in_purge():
+            content_handler = self._get_content_handler(abspath)
             qas = list(content_handler.get_qas())
             for qa in qas:
                 self._qa_handler.handle(qa)

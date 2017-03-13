@@ -7,7 +7,7 @@ from unittest.mock import call
 from integration.base_test_case import (EmptyWorkspaceTestCase,
                                         WorkspaceTestCases)
 from note.infrastructure.error import CMDError
-from note.module.element import RunResult
+from note.module.visitor import ReportAfterStatus
 
 
 class HelpTest(EmptyWorkspaceTestCase):
@@ -19,7 +19,7 @@ class HelpTest(EmptyWorkspaceTestCase):
 
         # check
         expected = [
-            call.show_prompt("{}".format(self.controller.parser.format_help()))
+            call.show("{}".format(self.controller.parser.format_help()))
         ]
         self.assertEqual(self.mock_view.method_calls, expected)
 
@@ -57,7 +57,7 @@ class EmptyWorkspaceStatusTest(EmptyWorkspaceTestCase):
         self.run_app('status')
 
         # check
-        expected = [call.show_run_result(RunResult())]
+        expected = [call.show_report_after_status(ReportAfterStatus())]
         self.assertEqual(self.mock_view.method_calls, expected)
 
 
@@ -65,10 +65,10 @@ class Case1Test(WorkspaceTestCases.WorkspaceTestCase):
     CASE_NAME = 'case1'
 
     def _check_status(self):
-        self.assertTrue(self.mock_view.show_run_result.called)
+        self.assertTrue(self.mock_view.show_report_after_status.called)
 
     def _check_commit(self):
-        self.assertEqual(self.mock_view.method_calls, [])
+        self.assertEqual(self.mock_view.show_report_after_commit.call_count, 1)
 
 
 if __name__ == '__main__':

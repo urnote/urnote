@@ -8,7 +8,9 @@ from note.utils.pattern import Singleton
 
 class Controller(metaclass=Singleton):
     def __init__(self, view, logger, parser, get_runner, get_initializer,
-                 get_purger):
+                 get_purger, get_status_result_visitor,
+                 get_commit_result_visitor):
+
         self.view = view
         self.logger = logger
         self.parser = parser
@@ -16,6 +18,8 @@ class Controller(metaclass=Singleton):
         self.get_runner = get_runner
         self.get_initializer = get_initializer
         self.get_purger = get_purger
+        self.get_commit_result_visitor = get_commit_result_visitor
+        self.get_status_result_visitor = get_status_result_visitor
 
     def run(self, args=None):
         try:
@@ -36,18 +40,18 @@ class Controller(metaclass=Singleton):
         if args.doc:
             self.show_doc()
         elif args.version:
-            self.view.show_prompt(note.__version__)
+            self.view.show(note.__version__)
         elif args.cmd:
             self.handle_sub_command(args)
         else:
-            self.view.show_prompt(
-                "see '{} --help'".format(config.APP_NAME_ABBR))
+            self.view.show(
+                "see '{} --help'".format(config.APP_NAME))
 
     def show_doc(self):
         from note.infrastructure.config import DOC_PATH
         with open(DOC_PATH, encoding='utf-8') as fo:
             doc = fo.read()
-            self.view.show_doc(doc)
+            self.view.show(doc)
 
     def handle_sub_command(self, args):
         if args.cmd == 'init':
@@ -56,10 +60,13 @@ class Controller(metaclass=Singleton):
         elif args.cmd == 'status':
             runner = self.get_runner()
             result = runner.run(commit=False)
-            self.view.show_run_result(result)
+            report = result.accept(self.get_status_result_visitor())
+            self.view.show_report_after_status(report)
         elif args.cmd == 'commit':
             runner = self.get_runner()
-            runner.run(commit=True, time=args.time)
+            result = runner.run(commit=True, time=args.time)
+            report = result.accept(self.get_commit_result_visitor())
+            self.view.show_report_after_commit(report)
         elif args.cmd == 'purge':
             purger = self.get_purger()
             path = args.path

@@ -34,4 +34,4 @@ class CustomArgumentParser(argparse.ArgumentParser):
         sys.exit(status)
 
     def print_help(self, file=None):
-        self.view.show_prompt(self.format_help())
+        self.view.show(self.format_help())

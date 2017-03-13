@@ -12,7 +12,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_file_content_error(self):
         with self.assertRaises(FileContentError) as self.err:
-            raise FileContentError.wrong_file('hello.md')
+            raise FileContentError.wrong_encoding('hello.md')
         self.assertMessageEqual(
             '文件"hello.md"无法打开',
             '使用UTF-8编码的文件,或者修改"./NOTE/ignore.default"文件忽略'
