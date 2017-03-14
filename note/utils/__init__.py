@@ -1,12 +1,14 @@
 import operator
 import os as os_
+import string
 import sys
 import time
 from contextlib import contextmanager
 
 from . import date
 
-__all__ = ['Base', 'timeit', 'suppress_stdout']
+__all__ = ['Base', 'timeit', 'suppress_stdout', 'truncate',
+           'truncate_for_display']
 
 
 class Base:
@@ -81,3 +83,70 @@ def suppress_stdout():
         yield
     finally:
         sys.stdout = stdout
+
+
+def truncate(msg, width=80, keep_newline=False):
+    """
+    将字符串截取为80长度,如果超过80,末尾以...表示,
+    keep_newline:截取过程中会保留最后的\n.如果传递进来的是bytes,则会保留最后的b'\n'
+    """
+    assert isinstance(msg, (str, bytes))
+    assert width >= 3
+
+    if isinstance(msg, str):
+        endswith_newline = False
+        if keep_newline and msg[-1] == '\n':
+            endswith_newline = True
+            msg = msg[:-1]
+        if len(msg) > width:
+            msg = msg[:width - 3] + '...'
+        return msg + ('\n' if endswith_newline else '')
+    elif isinstance(msg, bytes):
+        endswith_newline = False
+        if keep_newline and msg[-1] == b'\n':
+            endswith_newline = True
+            msg = msg[:-1]
+        if len(msg) > width:
+            msg = msg[:width - 3] + b'...'
+        return msg + (b'\n' if endswith_newline else b'')
+    else:
+        raise RuntimeError
+
+
+def truncate_for_display(msg, width=80, keep_newline=False):
+    """
+    将msg截断用于控制台显示,使显示的宽度不超过width,超出的部分用...表示
+    keep_newline将保留最后一个\n
+
+    原理如下:
+        如果是Ascii范围的字符,不可显示的宽度为0,可显示的宽度为1.
+        如果不是Ascii范围的字符,都认为宽度是2(有些字符显示宽度可能并不等于2,
+        但是中文宽度都是2).
+    """
+    assert isinstance(msg, str), 'msg 必须是Unicode字符串'
+    assert width >= 3
+    printable_chars = set(string.printable)
+
+    endswith_newline = False
+    if keep_newline and msg[-1] == '\n':
+        msg = msg[:-1]
+        endswith_newline = True
+
+    # 记录[(长度,坐标),(长度,坐标)...],其实最多记录最后的3个元素就可以了
+    records = []
+    length = 0
+    for i, char in enumerate(msg):
+        if ord(char) < 128:
+            if char in printable_chars:
+                length += 1
+                records.append((length, i + 1))
+        else:
+            length += 2
+            records.append((length, i + 1))
+        if length > width:
+            for l, c in reversed(records):
+                if l < width - 2:
+                    msg = msg[:c] + '...'
+                    break
+            break
+    return msg + ('\n' if endswith_newline else '')

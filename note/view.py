@@ -1,32 +1,21 @@
 from note.infrastructure.error import UserError
 from note.infrastructure.stdouthelper import StdoutHelper
-from note.module.visitor import ReportAfterStatus, LocatedQuestions, \
-    ReportAfterCommit
+from note.module.visitor import (ReportAfterStatus, LocatedQuestions,
+                                 ReportAfterCommit)
+from note.utils import truncate_for_display
 
 LOCATION_MSG = '    {location}:\n'.format
 QUESTION_MSG = '        {question}\n'.format
 
 
-def _truncate(msg, length=80):
-    assert len(msg) > 0
-
-    endswith_newline = False
-    if msg[-1] == '\n':
-        endswith_newline = True
-        msg = msg[:-1]
-    if len(msg) > length:
-        msg = msg[:length - 3] + '...'
-    return msg + ('\n' if endswith_newline else '')
-
-
 def _create_location_msg(location):
     msg = LOCATION_MSG(location=location)
-    return _truncate(msg)
+    return truncate_for_display(msg, width=80, keep_newline=True)
 
 
 def _create_question_msg(question):
     msg = QUESTION_MSG(question=question)
-    return _truncate(msg)
+    return truncate_for_display(msg, width=80, keep_newline=True)
 
 
 class View:
