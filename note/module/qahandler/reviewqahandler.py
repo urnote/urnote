@@ -9,35 +9,45 @@ class ReviewQAHandler(metaclass=Singleton):
         self._reviewer = reviewer
 
     def handle(self, qa, commit, time=None) -> StateTransition:
-        state_transition = None
+        """
+        处理一个QA,返回处理过后发生的状态转变和问题QA是否被修改的元组
+        """
         if qa.state == QAState.NORMAL:
-            state_transition = self._handle_normal(commit, qa, time)
+            state_transition, modified = self._handle_normal(commit, qa, time)
         elif qa.state == QAState.OLD:
-            state_transition = self._handle_old(qa)
+            state_transition, modified = self._handle_old(qa)
         elif qa.state == QAState.NEED_REVIEWED:
-            state_transition = self._handle_need_reviewed(commit, qa, time)
+            state_transition, modified = self._handle_need_reviewed(commit, qa,
+                                                                    time)
         elif qa.state == QAState.PAUSED:
-            state_transition = self._handle_paused(commit, qa)
+            state_transition, modified = self._handle_paused(commit, qa)
+        else:
+            raise RuntimeError
 
-        return state_transition
+        return state_transition, modified
 
     def _handle_normal(self, commit, qa, time):
         if qa.command is not None:
+            modified = False
             if commit:
                 id_ = self._reviewer.new(interval=qa.arg, time=time)
                 qa.state, qa.id = QAState.OLD, id_
                 qa.command = None
                 qa.arg = None
-            return StateTransition.NEW_TO_OLD
+                modified = True
+            return StateTransition.NEW_TO_OLD, modified
+        return None, False
 
     # 需要复习的不关心commit,总是会自动转换
     def _handle_old(self, qa: QA):
         id_ = qa.id
         if self._reviewer.need_review(id_):
             qa.state = QAState.NEED_REVIEWED
-            return StateTransition.OLD_TO_NEED_REVIEWED
+            return StateTransition.OLD_TO_NEED_REVIEWED, True
+        return None, False
 
     def _handle_need_reviewed(self, commit, qa, time):
+        modified = False
         if qa.command == Command.REMEMBER:
             grade = Grade.EASY
         elif qa.command == Command.FORGET:
@@ -46,22 +56,26 @@ class ReviewQAHandler(metaclass=Singleton):
             if commit:
                 qa.state = QAState.PAUSED
                 qa.command = None
-            return StateTransition.NEED_REVIEWED_TO_PAUSED_OLD
+                modified = True
+            return StateTransition.NEED_REVIEWED_TO_PAUSED_OLD, modified
         else:
-            return StateTransition.STILL_NEED_REVIEWED
+            return StateTransition.STILL_NEED_REVIEWED, modified
         if commit:
             self._reviewer.review(qa.id, grade, time=time)
             qa.state = QAState.OLD
             qa.command = None
-        return StateTransition.NEED_REVIEWED_TO_OLD
+            modified = True
+        return StateTransition.NEED_REVIEWED_TO_OLD, modified
 
     def _handle_paused(self, commit, qa):
         if qa.command is not None:
             if commit:
                 qa.state = QAState.OLD
                 qa.command = None
-                return self._handle_old(qa)
+                transition, _ = self._handle_old(qa)
+                return transition, True
             else:
-                transition = self._handle_old(qa)
+                transition, _ = self._handle_old(qa)
                 qa.state = QAState.PAUSED
-                return transition
+                return transition, False
+        return None, False

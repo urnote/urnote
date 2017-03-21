@@ -43,9 +43,10 @@ class Runner(metaclass=Singleton):
         need_reviewed_qs = []
         reviewed_qs = []
         paused_qs = []
-
+        modified = False
         for qa in qas:
-            state_transition = self._qa_handler.handle(qa, commit, time)
+            state_transition, modified = self._qa_handler.handle(qa, commit,
+                                                                 time)
             if state_transition == StateTransition.NEW_TO_OLD:
                 new_qs.append(str(qa))
             elif state_transition in (
@@ -62,7 +63,9 @@ class Runner(metaclass=Singleton):
 
         if need_reviewed_qs:
             self._workspace_manger.create_shortcut(abspath)
-        content_handler.save_qas(qas)
+
+        if modified:
+            content_handler.save_qas(qas)
 
         if any((new_qs, need_reviewed_qs, reviewed_qs, paused_qs)):
             result = OneNoteHandleResult(
