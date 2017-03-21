@@ -67,15 +67,15 @@ class ReviewQAHandler(metaclass=Singleton):
             modified = True
         return StateTransition.NEED_REVIEWED_TO_OLD, modified
 
-    def _handle_paused(self, commit, qa):
+    @staticmethod
+    def _handle_paused(commit, qa):
         if qa.command is not None:
+            # 如果命令不是空的,那么只能是继续复习命令,对于继续复习的,直接将其恢复到
+            # 加入时的状态(NEED_REVIEWED)即可
             if commit:
-                qa.state = QAState.OLD
+                qa.state = QAState.NEED_REVIEWED
                 qa.command = None
-                transition, _ = self._handle_old(qa)
-                return transition, True
+                return StateTransition.PAUSED_TO_NEED_REVIEWED, True
             else:
-                transition, _ = self._handle_old(qa)
-                qa.state = QAState.PAUSED
-                return transition, False
+                return StateTransition.PAUSED_TO_NEED_REVIEWED, False
         return None, False

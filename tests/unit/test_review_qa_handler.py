@@ -23,105 +23,82 @@ class TestReviewQAHandler_Status(unittest.TestCase):
 
     def test_normal(self):
         qa = QA("# chapter", "内容", None, QAState.NORMAL, None, None)
-        expected = QA("# chapter", "内容", None, QAState.NORMAL, None, None)
-        self._check(expected, qa)
+        self._check(qa)
 
     def test_normal_with_command(self):
         qa = QA("# chapter", "内容", None, QAState.NORMAL, Command.ADD, None)
-        expected = QA("# chapter", "内容", None, QAState.NORMAL, Command.ADD,
-                      None)
-        transition = StateTransition.NEW_TO_OLD
-        self._check(qa, expected, transition)
+        self._check(qa, expected_transition=StateTransition.NEW_TO_OLD)
         self.assertFalse(self.mock_reviewer.new.called)
 
     def test_normal_with_interval(self):
         qa = QA("# chapter", "内容", None, QAState.NORMAL, Command.ADD, 10)
-        expected = QA("# chapter", "内容", None, QAState.NORMAL, Command.ADD, 10)
-        transition = StateTransition.NEW_TO_OLD
-        self._check(qa, expected, transition)
+        self._check(qa, expected_transition=StateTransition.NEW_TO_OLD)
         self.assertFalse(self.mock_reviewer.new.called)
 
     def test_old(self):
         """还没到复习时间"""
         qa = QA("# chapter", "内容", 1, QAState.OLD, None, None)
         self.mock_reviewer.need_review.return_value = False
-        expected = QA("# chapter", "内容", 1, QAState.OLD, None, None)
-        self._check(qa, expected)
+        self._check(qa)
         self.mock_reviewer.need_review.assert_called_once_with(1)
 
     def test_old2(self):
         """到复习时间"""
         qa = QA("# chapter", "内容", 1, QAState.OLD, None, None)
+        expected_qa = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None,
+                         None)
         self.mock_reviewer.need_review.return_value = True
-        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None, None)
-        transition = StateTransition.OLD_TO_NEED_REVIEWED
-        self._check(qa, expected, transition)
+        self._check(qa,
+                    expected_qa=expected_qa,
+                    expected_transition=StateTransition.OLD_TO_NEED_REVIEWED,
+                    expected_modified=True)
         self.mock_reviewer.need_review.assert_called_once_with(1)
 
     def test_need_reviewed(self):
         qa = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None, None)
-        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None, None)
-        transition = StateTransition.STILL_NEED_REVIEWED
-        self._check(qa, expected, transition)
+        self._check(qa, expected_transition=StateTransition.STILL_NEED_REVIEWED)
 
     def test_need_reviewed_with_V(self):
         qa = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.REMEMBER,
                 None)
-        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED,
-                      Command.REMEMBER,
-                      None)
-        transition = StateTransition.NEED_REVIEWED_TO_OLD
-        self._check(qa, expected, transition)
+        self._check(qa,
+                    expected_transition=StateTransition.NEED_REVIEWED_TO_OLD)
         self.assertFalse(self.mock_reviewer.review.called)
 
     def test_need_reviewed_with_X(self):
         qa = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.FORGET,
                 None)
-        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED,
-                      Command.FORGET,
-                      None)
-        transition = StateTransition.NEED_REVIEWED_TO_OLD
-        self._check(qa, expected, transition)
+        self._check(qa,
+                    expected_transition=StateTransition.NEED_REVIEWED_TO_OLD)
         self.assertFalse(self.mock_reviewer.review.called)
 
     def test_need_reviewed_with_P(self):
         qa = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.PAUSE,
                 None)
-        expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED,
-                      Command.PAUSE, None)
-        transition = StateTransition.NEED_REVIEWED_TO_PAUSED_OLD
-        self._check(qa, expected, transition)
+        self._check(
+            qa,
+            expected_transition=StateTransition.NEED_REVIEWED_TO_PAUSED_OLD
+        )
 
     def test_paused(self):
         qa = QA("# chapter", "内容", 1, QAState.PAUSED, None, None)
-        expected = QA("# chapter", "内容", 1, QAState.PAUSED, None, None)
-        self._check(qa, expected)
+        self._check(qa)
 
     def test_paused_with_C(self):
-        """加入后发现还没到复习时间"""
         qa = QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE, None)
-        self.mock_reviewer.need_review.return_value = False
-        expected = QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE,
-                      None)
-        self._check(qa, expected)
-        self.mock_reviewer.need_review.assert_called_once_with(1)
+        self._check(qa,
+                    expected_transition=StateTransition.PAUSED_TO_NEED_REVIEWED)
 
-    def test_paused_with_C2(self):
-        """加入后发现到复习时间"""
-        qa = QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE, None)
-        self.mock_reviewer.need_review.return_value = True
-        expected = QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE,
-                      None)
-        transition = StateTransition.OLD_TO_NEED_REVIEWED
-        self._check(qa, expected, transition)
-        self.mock_reviewer.need_review.assert_called_once_with(1)
+    def _check(self, qa, expected_qa=None, expected_transition=None,
+               expected_modified=False):
+        if not expected_qa:
+            expected_qa = copy.deepcopy(qa)
 
-    def _check(self, qa, expected_qa, expected_transition=None):
-        raw_qa = copy.deepcopy(qa)
         transition, modified = self.handler.handle(qa, commit=False, time=None)
+
         self.assertEqual(
             (transition, modified),
-            (expected_transition, raw_qa != expected_qa)
+            (expected_transition, expected_modified)
         )
         self.assertEqual(qa, expected_qa)
 
@@ -214,20 +191,9 @@ class TestReviewQAHandler_Commit(unittest.TestCase):
         self._check(qa, expected)
 
     def test_paused_with_C(self):
-        """加入后发现还没到复习时间"""
         qa = QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE, None)
-        self.mock_reviewer.need_review.return_value = False
-        expected = QA("# chapter", "内容", 1, QAState.OLD, None, None)
-        self._check(qa, expected)
-        self.mock_reviewer.need_review.assert_called_once_with(1)
-
-    def test_paused_with_C2(self):
-        """加入后发现到复习时间"""
-        qa = QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE, None)
-        self.mock_reviewer.need_review.return_value = True
         expected = QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None, None)
-        self._check(qa, expected, StateTransition.OLD_TO_NEED_REVIEWED)
-        self.mock_reviewer.need_review.assert_called_once_with(1)
+        self._check(qa, expected, StateTransition.PAUSED_TO_NEED_REVIEWED)
 
     def _check(self, qa, expected_qa, expected_transition=None):
         raw_qa = copy.deepcopy(qa)

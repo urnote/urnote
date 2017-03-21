@@ -61,6 +61,7 @@ class StateTransition(Enum):
     NEED_REVIEWED_TO_PAUSED_OLD = 2  # 暂停了的
     OLD_TO_NEED_REVIEWED = 3  # 本次新加入的需要复习的
     STILL_NEED_REVIEWED = 4  # 表示没有改变，还是需要复习
+    PAUSED_TO_NEED_REVIEWED = 5  # 重新加入复习计划
 
 
 class Command(Enum):

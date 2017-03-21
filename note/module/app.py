@@ -51,7 +51,8 @@ class Runner(metaclass=Singleton):
                 new_qs.append(str(qa))
             elif state_transition in (
                     StateTransition.OLD_TO_NEED_REVIEWED,
-                    StateTransition.STILL_NEED_REVIEWED):
+                    StateTransition.STILL_NEED_REVIEWED,
+                    StateTransition.PAUSED_TO_NEED_REVIEWED):
                 need_reviewed_qs.append(str(qa))
             elif state_transition == StateTransition.NEED_REVIEWED_TO_OLD:
                 reviewed_qs.append(str(qa))
