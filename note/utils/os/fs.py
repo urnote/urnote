@@ -6,22 +6,31 @@ from contextlib import ContextDecorator
 from functools import wraps
 
 __all__ = [
-    'create_shortcut', 'hidden_dir', 'make_dir_of_file', 'clean_dir',
-    'exist_in_dir', 'exist_in_or_above', 'walk', 'virtual_workspace'
+    'create_shortcut', 'create_shortcut_on_windows', 'create_shortcut_on_linux',
+    'hidden_dir', 'hidden_dir_on_windows', 'hidden_dir_on_linux',
+    'make_dir_of_file', 'clean_dir', 'exist_in_dir', 'exist_in_or_above',
+    'walk', 'virtual_workspace'
 ]
 
 
 def create_shortcut(src_path, dest_dir):
+    return {
+        'Windows': create_shortcut_on_windows,
+        'Linux': create_shortcut_on_linux
+    }[platform.system()](src_path, dest_dir)
+
+
+def create_shortcut_on_windows(src_path, dest_dir):
     """在windows平台下创建指定路径的快捷方式,快捷方式的名字和前者一样
 
     eg:
         create_shortcut_2('C:/hello/world/python.exe','D:/programs')
         将在D:/programs 目录下创建python.lnk快捷方式
     """
+    # noinspection PyUnresolvedReferences
     import win32com.client
 
-    if platform.system() != 'Windows':
-        raise OSError('不支持Windows之外的操作系统')
+    assert platform.system() == 'Windows'
 
     filename = os.path.basename(src_path)
     filename = os.path.splitext(filename)[0] + '.lnk'
@@ -41,12 +50,25 @@ def create_shortcut(src_path, dest_dir):
     shortcut.Save()
 
 
-def hidden_dir(dirpath):
-    """用于在windows操作系统下隐藏目录"""
-    import ctypes
+def create_shortcut_on_linux(src_path, dest_dir):
+    assert platform.system() == 'Linux'
+    dirname, basename = os.path.split(src_path)
+    link_path = os.path.join(dest_dir, basename)
+    os.symlink(src_path, link_path)
 
-    if platform.system() != 'Windows':
-        raise OSError('不支持Windows之外的操作系统')
+
+def hidden_dir(dirpath):
+    return {
+        'Windows': hidden_dir_on_windows,
+        'Linux': hidden_dir_on_linux
+    }[platform.system()](dirpath)
+
+
+def hidden_dir_on_windows(dirpath):
+    """用于在windows操作系统下隐藏目录"""
+    assert platform.system() == 'Windows'
+
+    import ctypes
 
     file_attribute_hidden = 0x02
 
@@ -56,6 +78,14 @@ def hidden_dir(dirpath):
     # return code of zero indicates failure, raise Windows error
     if not ret:
         raise ctypes.WinError()
+
+
+def hidden_dir_on_linux(dirpath):
+    dirname, basename = os.path.split(dirpath)
+    if basename[0] == '.':
+        pass
+    else:
+        os.rename(dirpath, os.path.join(dirname, '.' + basename))
 
 
 def make_dir_of_file(filepath):

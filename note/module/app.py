@@ -52,7 +52,6 @@ class Runner(metaclass=Singleton):
                     StateTransition.OLD_TO_NEED_REVIEWED,
                     StateTransition.STILL_NEED_REVIEWED):
                 need_reviewed_qs.append(str(qa))
-                self._workspace_manger.create_shortcut(abspath)
             elif state_transition == StateTransition.NEED_REVIEWED_TO_OLD:
                 reviewed_qs.append(str(qa))
             elif state_transition == \
@@ -61,6 +60,8 @@ class Runner(metaclass=Singleton):
             else:
                 pass
 
+        if need_reviewed_qs:
+            self._workspace_manger.create_shortcut(abspath)
         content_handler.save_qas(qas)
 
         if any((new_qs, need_reviewed_qs, reviewed_qs, paused_qs)):
