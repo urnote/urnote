@@ -20,7 +20,7 @@ class StdoutHelper:
             _STDOUT_ENCODE, 'ignore').decode(_STDOUT_ENCODE)
         sys.stdout.write('{}{}'.format(flag, message))
 
-    def print_white(self, message):
+    def print(self, message):
         self._print(Fore.WHITE, message)
 
     def print_green(self, message):

@@ -23,7 +23,7 @@ class View:
         self.stdouthelper = StdoutHelper()
 
     def show(self, msg):
-        self.stdouthelper.print_white('\n{}\n'.format(msg))
+        self.stdouthelper.print('\n{}\n'.format(msg))
 
     def show_report_after_status(self, result: ReportAfterStatus):
         self._show_new_info(result)
@@ -72,17 +72,20 @@ class View:
                     self.stdouthelper.print_yellow(question_msg)
 
     def show_report_after_commit(self, result: ReportAfterCommit):
-        if result.new_num:
-            self._show_summary('新增', result.new_num)
-        if result.reviewed_num:
-            self._show_summary('复习', result.reviewed_num)
-        if result.paused_num:
-            self._show_summary('暂停', result.paused_num)
+        if result.new_num or result.reviewed_num or result.paused_num:
+            self.stdouthelper.print('\n')
+            if result.new_num:
+                self._show_summary('新增', result.new_num)
+            if result.reviewed_num:
+                self._show_summary('复习', result.reviewed_num)
+            if result.paused_num:
+                self._show_summary('暂停', result.paused_num)
+
         self._show_need_reviewed_info(result)
 
     def _show_summary(self, action, total):
         self.stdouthelper.print_blue(
-            '\n{}了 {} 个问题'.format(action, total))
+            '{}了 {} 个问题\n'.format(action, total))
 
     def show_error(self, exc: UserError = None, msg=''):
         if exc:
