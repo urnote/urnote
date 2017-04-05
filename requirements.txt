@@ -1,12 +1,18 @@
 # -*- coding:utf-8 -*-
 
-## 核心部分
+## core ##
 colorama>=0.3.7
 SQLAlchemy>=1.1.3
 
-## 如果要使用tools文件夹中的工具,需要安装额外的包
-PyInstaller>=3.2
+## windows ##
+pypiwin32>=219
+
+## tools ##
+# 用于tools\choose_color.py,可以不安装
 prettytable>=0.7.2
+# 用于tools\profile_.py,可以不安装
 objgraph>=3.1.0
 
-pypiwin32>=219
+## tools for windows ##
+# 用于tools\build.py,可以不安装
+PyInstaller>=3.2
