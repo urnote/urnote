@@ -50,7 +50,7 @@ smart note is a tool that helps you review your notes.
 
 Now we excute `note status`  to view the status of our workspace, the result is as follows:
 
-![status](./docs/res/after status.png)
+![status](./docs/res/after_status.png)
 
 Note identifies the entries need to be added to the review plan through the question mark at the end of the title ,after confirmation execute `note commit` to commit it.
 
@@ -76,7 +76,7 @@ Enter the TASK directory ,open a file, you will find ❓ turns into �
 
 Execute `note status`  to view the status of our workspace. Execute `note commit  `after you confirm it.
 
-![complex status](./docs/res/complex status.png)
+![complex status](./docs/res/complex_status.png)
 
 ### Support
 
