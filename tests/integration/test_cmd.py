@@ -62,7 +62,19 @@ class EmptyWorkspaceStatusTest(EmptyWorkspaceTestCase):
 
 
 class Case1Test(WorkspaceTestCases.WorkspaceTestCase):
+    """一些最基本的测试"""
     CASE_NAME = 'case1'
+
+    def _check_status(self):
+        self.assertTrue(self.mock_view.show_report_after_status.called)
+
+    def _check_commit(self):
+        self.assertEqual(self.mock_view.show_report_after_commit.call_count, 1)
+
+
+class Case2Test(WorkspaceTestCases.WorkspaceTestCase):
+    """打乱了case1中的一些顺序后的测试"""
+    CASE_NAME = 'case2'
 
     def _check_status(self):
         self.assertTrue(self.mock_view.show_report_after_status.called)

@@ -45,8 +45,10 @@ class Runner(metaclass=Singleton):
         paused_qs = []
         modified = False
         for qa in qas:
-            state_transition, modified = self._qa_handler.handle(qa, commit,
-                                                                 time)
+            state_transition, modified_ = self._qa_handler.handle(qa, commit,
+                                                                  time)
+            modified = modified or modified_
+
             if state_transition == StateTransition.NEW_TO_OLD:
                 new_qs.append(str(qa))
             elif state_transition in (
