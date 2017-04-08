@@ -38,22 +38,21 @@ class Controller(metaclass=Singleton):
         args = self.parser.parse_args(args or sys.argv[1:])
 
         if args.doc:
-            self.show_doc()
+            self._show_doc()
         elif args.version:
             self.view.show(note.__version__)
         elif args.cmd:
-            self.handle_sub_command(args)
+            self._handle_sub_command(args)
         else:
             self.view.show(
                 "see '{} --help'".format(config.APP_NAME))
 
-    def show_doc(self):
-        from note.infrastructure.config import DOC_PATH
-        with open(DOC_PATH, encoding='utf-8') as fo:
-            doc = fo.read()
-            self.view.show(doc)
+    @staticmethod
+    def _show_doc():
+        import webbrowser
+        webbrowser.open(config.DOC_URL)
 
-    def handle_sub_command(self, args):
+    def _handle_sub_command(self, args):
         if args.cmd == 'init':
             initializer = self.get_initializer()
             initializer.init()

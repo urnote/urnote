@@ -27,7 +27,6 @@ def main():
 
         kwargs = {
             'locales_path': join_path('note', 'infrastructure', 'locales'),
-            'docs_path': join_path('docs'),
             'bat_path': join_path('tools', 'SET_PATH.bat'),
             'main_module_path': join_path('note', '__main__.py'),
             'python_search_path': join_path('note'),

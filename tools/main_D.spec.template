@@ -4,7 +4,6 @@ block_cipher = None
 
 added_files = [
     (r'{locales_path}', 'locales'),
-    (r'{docs_path}','docs'),
     (r'{bat_path}','')
 ]
 a = Analysis(

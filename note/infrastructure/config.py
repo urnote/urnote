@@ -27,10 +27,11 @@ _DIR_PATH = os.path.dirname(__file__)
 # 程序用到的一些数据文件,位置会随打包而变动
 if DEBUG:
     LOCALES = os.path.join(_DIR_PATH, 'locales')
-    DOC_PATH = os.path.join(_DIR_PATH, '../../docs/使用说明.rst')
 else:
     # 使用PyInstaller打包后frozen为True,且_MEIPASS为数据目录
     if getattr(sys, 'frozen', False):
         # we are running in a bundle
         LOCALES = os.path.join(sys._MEIPASS, 'locales')
-        DOC_PATH = os.path.join(sys._MEIPASS, 'docs/使用说明.rst')
+
+# 在线文档链接
+DOC_URL = 'https://jefffffrey.github.io/smart-note/'
