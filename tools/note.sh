@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# 用于启动note，只用与DEBUG模式
+# 用于启动note，只用于DEBUG模式
 
 SCRIPT_PATH=$(readlink -f "$0")
 ROOT_PATH=$(dirname $(dirname "${SCRIPT_PATH}"))
