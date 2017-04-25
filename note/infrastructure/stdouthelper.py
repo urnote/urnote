@@ -21,7 +21,7 @@ class StdoutHelper:
         sys.stdout.write('{}{}'.format(flag, message))
 
     def print(self, message):
-        self._print(Fore.WHITE, message)
+        self._print(Fore.RESET, message)
 
     def print_green(self, message):
         self._print(Fore.GREEN, message)
