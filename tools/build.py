@@ -2,12 +2,12 @@
 使用PyInstaller生成exe
 """
 import os
+import platform
 
 from PyInstaller import __main__
 
 # noinspection PyUnresolvedReferences
 import context
-
 from note.infrastructure import config
 
 assert config.DEBUG is False
@@ -32,6 +32,13 @@ def main():
             'python_search_path': join_path('note'),
             'icon_path': join_path('tools', 'one_note.ico')
         }
+        if platform.system() == 'Windows':
+            kwargs['bat_path'] = join_path('tools', 'SET_PATH.bat')
+        elif platform.system() == 'Linux':
+            kwargs['bat_path'] = join_path('tools', 'install.sh')
+        else:
+            raise NotImplementedError('暂不支持Windows和Linux以外的系统')
+
         content = content.format(**kwargs)
     with open('main.spec', 'w') as fo:
         fo.write(content)
