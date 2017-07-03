@@ -13,14 +13,14 @@ __all__ = [
 ]
 
 
-def create_shortcut(src_path, dest_dir):
+def create_shortcut(src_path, dest_dir, keep_dir=False):
     return {
         'Windows': create_shortcut_on_windows,
         'Linux': create_shortcut_on_linux
-    }[platform.system()](src_path, dest_dir)
+    }[platform.system()](src_path, dest_dir, keep_dir)
 
 
-def create_shortcut_on_windows(src_path, dest_dir):
+def create_shortcut_on_windows(src_path, dest_dir, keep_dir=False):
     """在windows平台下创建指定路径的快捷方式,快捷方式的名字和前者一样
 
     eg:
@@ -50,11 +50,25 @@ def create_shortcut_on_windows(src_path, dest_dir):
     shortcut.Save()
 
 
-def create_shortcut_on_linux(src_path, dest_dir):
+def create_shortcut_on_linux(src_path, dest_dir, keep_dir=False):
+    """在dest_dir目录下创建快捷方式
+    src_path和dest_dir可以使用相对路径和绝对路径。dest_dir必须存在，不存在会跑出异常。
+    """
     assert platform.system() == 'Linux'
-    dirname, basename = os.path.split(src_path)
-    link_path = os.path.join(dest_dir, basename)
+    if keep_dir:
+        root_dir = os.path.commonpath([os.path.abspath(src_path), os.path.abspath(dest_dir)])
+        link_path = os.path.join(dest_dir, os.path.relpath(src_path, root_dir))
+        crete_dir_if_not_exist(link_path)
+    else:
+        _, basename = os.path.split(src_path)
+        link_path = os.path.join(dest_dir, basename)
     os.symlink(src_path, link_path)
+
+
+def crete_dir_if_not_exist(path):
+    dirname = os.path.dirname(os.path.abspath(path))
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 
 
 def hidden_dir(dirpath):

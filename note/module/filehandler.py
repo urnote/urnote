@@ -40,7 +40,8 @@ class WorkspaceManager(metaclass=Singleton):
         return os.path.relpath(path, self.path_helper.root_dir)
 
     def create_shortcut(self, path):
-        fs.create_shortcut(path, self.path_helper.task_path)
+        """在TASK目录下面创建快捷方式,如果需要目录则自动创建"""
+        fs.create_shortcut(path, self.path_helper.task_path, keep_dir=True)
 
     def create_workspace(self, path=None):
         """创建工作空间
