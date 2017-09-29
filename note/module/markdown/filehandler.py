@@ -125,11 +125,19 @@ class MarkdownFileContentHandler(FileContentHandler):
 
     def _create_qa(self, header, body):
         qa = MarkdownQA()
-        qa.answer = body
-        self._set_other_attr(qa, header)
+        self._set_attr_from_body(qa, body)
+        self._set_attr_from_header(qa, header)
         return qa
 
-    def _set_other_attr(self, qa, header):
+    def _set_attr_from_body(self, qa, body):
+        qa.body = body
+        qa.answer = self._get_answer(body)
+
+    @staticmethod
+    def _get_answer(body):
+        return body.split('---', 1)[0].strip()
+
+    def _set_attr_from_header(self, qa, header):
         """设置question,state,id,command"""
         pat__type = [
             (NEW, QAState.NORMAL),
@@ -226,12 +234,12 @@ class MarkdownFileContentHandler(FileContentHandler):
         assert qa.state is not None
         if qa.state == QAState.NORMAL:
             if qa.command is None:
-                return qa.question, qa.answer
+                return qa.question, qa.body
             if qa.arg is None:
-                return NEW_TITLE(question=qa.question, cmd_string=''), qa.answer
-            return NEW_TITLE(question=qa.question, cmd_string=qa.arg), qa.answer
+                return NEW_TITLE(question=qa.question, cmd_string=''), qa.body
+            return NEW_TITLE(question=qa.question, cmd_string=qa.arg), qa.body
         if qa.state == QAState.OLD:
-            return OLD_TITLE(question=qa.question, id=qa.id, ), qa.answer
+            return OLD_TITLE(question=qa.question, id=qa.id, ), qa.body
         if qa.state == QAState.NEED_REVIEWED:
             if qa.command:
                 command = {
@@ -241,18 +249,18 @@ class MarkdownFileContentHandler(FileContentHandler):
                 }[qa.command]
                 return NEED_REVIEWED_TITLE(
                     question=qa.question, id=qa.id, cmd_string=command
-                ), qa.answer
+                ), qa.body
             return NEED_REVIEWED_TITLE(
                 question=qa.question, id=qa.id, cmd_string=''
-            ), qa.answer
+            ), qa.body
         if qa.state == QAState.PAUSED:
             if qa.command:
                 return PAUSED_TITLE(
                     question=qa.question, id=qa.id, cmd_string='C'
-                ), qa.answer
+                ), qa.body
             return PAUSED_TITLE(
                 question=qa.question, id=qa.id, cmd_string=''
-            ), qa.answer
+            ), qa.body
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

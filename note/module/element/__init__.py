@@ -4,12 +4,13 @@ from note.utils import Base
 
 
 class QA(Base):
-    __slots__ = ('question', 'answer', 'id', 'state', '_command', 'arg')
+    __slots__ = ('question', 'answer', 'body', 'id', 'state', '_command', 'arg')
 
-    def __init__(self, question='', answer='', id_=None, state=None,
+    def __init__(self, question='', answer='', body='', id_=None, state=None,
                  command=None, arg=None):
         self.question = question
         self.answer = answer
+        self.body = body
         self.id = id_
         self.state = state
 

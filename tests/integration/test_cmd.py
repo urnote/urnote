@@ -83,5 +83,16 @@ class Case2Test(WorkspaceTestCases.WorkspaceTestCase):
         self.assertEqual(self.mock_view.show_report_after_commit.call_count, 1)
 
 
+class Case3Test(WorkspaceTestCases.WorkspaceTestCase):
+    """基于case1的测试用例，在内容中随机加入了answer结尾标志符"""
+    CASE_NAME = 'case3'
+
+    def _check_status(self):
+        self.assertTrue(self.mock_view.show_report_after_status.called)
+
+    def _check_commit(self):
+        self.assertEqual(self.mock_view.show_report_after_commit.call_count, 1)
+
+
 if __name__ == '__main__':
     unittest.main()
