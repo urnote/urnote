@@ -22,7 +22,8 @@ class TestMarkdownFileHandler_Get_Qas(TestMarkdownFileHandler):
         content = "# chapter\n" \
                   "内容"
         expected = [QA("# chapter", "内容", None, QAState.NORMAL, None, None)]
-        self._check(content, expected)
+        # todo: check可以细化为只比较状态之类的，否则增加属性导致修改所有测试．
+        self._check_status(content, expected)
 
     def test_normal2(self):
         content = "# chapter\n" \
@@ -31,47 +32,47 @@ class TestMarkdownFileHandler_Get_Qas(TestMarkdownFileHandler):
                   "内容"
         expected = [QA("# chapter", "内容", None, QAState.NORMAL, None, None),
                     QA("# chapter", "内容", None, QAState.NORMAL, None, None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_normal_with_command(self):
         content = "# chapter ?\n" \
                   "内容"
         expected = [
             QA("# chapter", "内容", None, QAState.NORMAL, Command.ADD, None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_normal_with_interval(self):
         content = "# chapter ? 10\n" \
                   "内容"
         expected = [
             QA("# chapter", "内容", None, QAState.NORMAL, Command.ADD, 10)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_old(self):
         content = "# chapter    [:question:](SOH0000001EOT)\n" \
                   "内容"
         expected = [QA("# chapter", "内容", 1, QAState.OLD, None, None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_need_reviewed(self):
         content = "# chapter    [:notification:](SOH0000001EOT)\n" \
                   "内容"
         expected = [QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, None, None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_need_reviewed_with_V(self):
         content = "# chapter    [:notification:](SOH0000001EOT)  V\n" \
                   "内容"
         expected = [
             QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.REMEMBER, None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_need_reviewed_with_X(self):
         content = "# chapter    [:notification:](SOH0000001EOT)  X\n" \
                   "内容"
         expected = [
             QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.FORGET, None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_need_reviewed_with_P(self):
         content = "# chapter    [:notification:](SOH0000001EOT)  P\n" \
@@ -79,24 +80,30 @@ class TestMarkdownFileHandler_Get_Qas(TestMarkdownFileHandler):
         expected = [
             QA("# chapter", "内容", 1, QAState.NEED_REVIEWED, Command.PAUSE,
                None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_paused(self):
         content = "# chapter    [:closed_book:](SOH0000001EOT)\n" \
                   "内容"
         expected = [QA("# chapter", "内容", 1, QAState.PAUSED, None, None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
     def test_paused_with_C(self):
         content = "# chapter    [:closed_book:](SOH0000001EOT) C\n" \
                   "内容"
         expected = [
             QA("# chapter", "内容", 1, QAState.PAUSED, Command.CONTINUE, None)]
-        self._check(content, expected)
+        self._check_status(content, expected)
 
-    def _check(self, content, expected):
+    def _check_status(self, content, expected):
         qas = self._get_qas(content)
-        self.assertEqual(list(qas), expected)
+        for qa, exp in zip(qas, expected):
+            self.assertEqual(qa.question, exp.question)
+            self.assertEqual(qa.answer, exp.answer)
+            self.assertEqual(qa.id, exp.id)
+            self.assertEqual(qa.state, exp.state)
+            self.assertEqual(qa._command, exp._command)
+            self.assertEqual(qa.arg, exp.arg)
 
     def _write(self, content):
         with open(self.PATH, 'w', encoding='utf-8') as fo:
