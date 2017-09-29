@@ -20,7 +20,6 @@ class QA(Base):
 
     @property
     def command(self):
-        assert self.state != QAState.OLD
         return self._command
 
     @command.setter

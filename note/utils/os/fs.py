@@ -307,3 +307,28 @@ class virtual_workspace(ContextDecorator):
                 return func(*args, **kwargs)
 
         return inner
+
+
+def copy_file(src_path, dest_dir, keep_dir):
+    if keep_dir:
+        root_dir = os.path.commonpath([os.path.abspath(src_path), os.path.abspath(dest_dir)])
+        target_path = os.path.join(dest_dir, os.path.relpath(src_path, root_dir))
+        crete_dir_if_not_exist(target_path)
+    else:
+        _, basename = os.path.split(src_path)
+        target_path = os.path.join(dest_dir, basename)
+
+    shutil.copyfile(src_path, target_path)
+
+
+def move_file(src_path, dest_dir, keep_dir):
+    if keep_dir:
+        root_dir = os.path.commonpath([os.path.abspath(src_path), os.path.abspath(dest_dir)])
+        target_path = os.path.join(dest_dir, os.path.relpath(src_path, root_dir))
+        crete_dir_if_not_exist(target_path)
+    else:
+        _, basename = os.path.split(src_path)
+        target_path = os.path.join(dest_dir, basename)
+
+    shutil.move(src_path, target_path)
+    return target_path

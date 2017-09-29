@@ -1,4 +1,5 @@
 import os
+import pickle
 import shutil
 
 from note.infrastructure import config
@@ -21,7 +22,19 @@ class FileContentHandler:
         """保存qa列表到文件"""
 
 
+class WorkspaceOperationRecord(object):
+    def __init__(self):
+        self.last_operation_in_task_dir = None
+        self.copy_map = {}
+
+
 class WorkspaceManager(metaclass=Singleton):
+    """
+    负责处理所有和项目文件相关的任务,包括文件操作历史等
+    
+    TODO: 不应该暴露绝对路径出去，只给相对路径，外部也不应该绕过该类直接访问文件．
+    """
+
     def __init__(self, path_helper: PathHelper):
         self._path = None
         self._file_handler = None
@@ -35,6 +48,14 @@ class WorkspaceManager(metaclass=Singleton):
                 ignore_patterns_filepath=self.path_helper.ignore_path):
             yield abspath
 
+    def get_paths_in_taskdir(self):
+        """返回工作空间中的笔记的路径"""
+        for abspath in fs.walk(
+                dirpath=self.path_helper.task_path,
+                ignore_patterns=config.IGNORE_FILES,
+                ignore_patterns_filepath=self.path_helper.ignore_path):
+            yield abspath
+
     def get_relpath(self, path):
         """得到path在工作空间下的相对路径"""
         return os.path.relpath(path, self.path_helper.root_dir)
@@ -42,6 +63,50 @@ class WorkspaceManager(metaclass=Singleton):
     def create_shortcut(self, path):
         """在TASK目录下面创建快捷方式,如果需要目录则自动创建"""
         fs.create_shortcut(path, self.path_helper.task_path, keep_dir=True)
+
+        wor = None
+        try:
+            with open(self.path_helper.workspace_operation_record_path, 'rb')as fo:
+                wor = pickle.load(fo)
+        except OSError:
+            wor = WorkspaceOperationRecord()
+        finally:
+            wor.last_operation_in_task_dir = 'create_shortcut'
+            with open(self.path_helper.workspace_operation_record_path, 'wb')as fo:
+                pickle.dump(wor, fo)
+
+    def copy_to_task_dir(self, abspath):
+        target_path = fs.copy_file(abspath, self.path_helper.task_path, keep_dir=True)
+
+        try:
+            with open(self.path_helper.workspace_operation_record_path, 'rb')as fo:
+                wor = pickle.load(fo)
+        except OSError:
+            wor = WorkspaceOperationRecord()
+
+        wor.last_operation_in_task_dir = 'copy'
+        wor.copy_map[target_path] = abspath
+        with open(self.path_helper.workspace_operation_record_path, 'wb')as fo:
+            pickle.dump(wor, fo)
+
+    def last_task_operation(self):
+        try:
+            with open(self.path_helper.workspace_operation_record_path, 'rb')as fo:
+                wor = pickle.load(fo)
+                return wor.last_operation_in_task_dir
+        except OSError:
+            return None
+
+    def move_back_to_root_dir(self):
+        with open(self.path_helper.workspace_operation_record_path, 'rb')as fo:
+            wor = pickle.load(fo)
+            assert wor.last_operation_in_task_dir == 'move'
+
+            for target_path, src_path in wor.copy_map.items():
+                shutil.move(target_path, src_path)
+
+        with open(self.path_helper.workspace_operation_record_path, 'wb')as fo:
+            pickle.dump(WorkspaceOperationRecord(), fo)
 
     def create_workspace(self, path=None):
         """创建工作空间
@@ -62,12 +127,15 @@ class WorkspaceManager(metaclass=Singleton):
             ((path_helper.db_path,), {}),
             ((path_helper.log_path,), {}),
             ((path_helper.user_config_path,), {}),
-            ((path_helper.ignore_path,), {})
+            ((path_helper.ignore_path,), {}),
+            ((path_helper.workspace_operation_record_path,), {})
         )
         for args, kwargs in params:
             self._create(*args, **kwargs)
 
         fs.hidden_dir(path_helper.app_date_path)
+        with open(path_helper.workspace_operation_record_path, 'wb')as fo:
+            pickle.dump(WorkspaceOperationRecord(), fo)
 
         self.path_helper = path_helper
 

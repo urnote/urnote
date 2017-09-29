@@ -130,8 +130,15 @@ class MarkdownFileContentHandler(FileContentHandler):
         return qa
 
     def _set_attr_from_body(self, qa, body):
-        qa.body = body
-        qa.answer = self._get_answer(body)
+        result = body.split('\n---\n', 1)
+        if len(result) == 1:
+            qa.answer = result[0]
+            qa.body = None
+        elif len(result) == 2:
+            qa.answer = result[0]
+            qa.body = result[1]
+        else:
+            raise RuntimeError
 
     @staticmethod
     def _get_answer(body):
@@ -219,7 +226,7 @@ class MarkdownFileContentHandler(FileContentHandler):
 
     def _convert_to_text(self, qas):
         if self._toc:
-            new_content = [self._toc]
+            new_content = [self._toc.strip()]
         else:
             new_content = []
         for qa in qas:
@@ -229,17 +236,24 @@ class MarkdownFileContentHandler(FileContentHandler):
         new_content = "\n".join(new_content)
         return new_content
 
-    @staticmethod
-    def _to_text(qa: QA):
+    def _to_text(self, qa: QA):
         assert qa.state is not None
+        if qa.body:
+            body = qa.answer + '\n---\n' + qa.body
+        else:
+            body = qa.answer
+        return self._get_q(qa), body
+
+    @staticmethod
+    def _get_q(qa: QA):
         if qa.state == QAState.NORMAL:
             if qa.command is None:
-                return qa.question, qa.body
+                return qa.question
             if qa.arg is None:
-                return NEW_TITLE(question=qa.question, cmd_string=''), qa.body
-            return NEW_TITLE(question=qa.question, cmd_string=qa.arg), qa.body
+                return NEW_TITLE(question=qa.question, cmd_string='')
+            return NEW_TITLE(question=qa.question, cmd_string=qa.arg)
         if qa.state == QAState.OLD:
-            return OLD_TITLE(question=qa.question, id=qa.id, ), qa.body
+            return OLD_TITLE(question=qa.question, id=qa.id, )
         if qa.state == QAState.NEED_REVIEWED:
             if qa.command:
                 command = {
@@ -249,18 +263,18 @@ class MarkdownFileContentHandler(FileContentHandler):
                 }[qa.command]
                 return NEED_REVIEWED_TITLE(
                     question=qa.question, id=qa.id, cmd_string=command
-                ), qa.body
+                )
             return NEED_REVIEWED_TITLE(
                 question=qa.question, id=qa.id, cmd_string=''
-            ), qa.body
+            )
         if qa.state == QAState.PAUSED:
             if qa.command:
                 return PAUSED_TITLE(
                     question=qa.question, id=qa.id, cmd_string='C'
-                ), qa.body
+                )
             return PAUSED_TITLE(
                 question=qa.question, id=qa.id, cmd_string=''
-            ), qa.body
+            )
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

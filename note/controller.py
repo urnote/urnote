@@ -58,7 +58,7 @@ class Controller(metaclass=Singleton):
             initializer.init()
         elif args.cmd == 'status':
             runner = self.get_runner()
-            result = runner.run(commit=False)
+            result = runner.run(commit=False, use_link=not args.not_link, short=args.short)
             report = result.accept(self.get_status_result_visitor())
             self.view.show_report_after_status(report)
         elif args.cmd == 'commit':

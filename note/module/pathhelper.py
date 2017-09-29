@@ -55,6 +55,10 @@ class PathHelper(metaclass=Singleton):
     def purge_path(self):
         return self._join(config.PURGE_DIR_NAME)
 
+    @cached_property
+    def workspace_operation_record_path(self):
+        return self._join(config.WORKSPACE_OPERATION_RECORD_PATH)
+
     def _join(self, path):
         if self._root_dir:
             return os.path.join(self._root_dir, path)

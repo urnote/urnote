@@ -49,15 +49,28 @@ def get_parser(view):
     parser.add_argument(
         '-v', '--version', help='查看版本号', action='store_true')
 
-    sp = parser.add_subparsers(help='子命令', dest='cmd', view=view)
+    sp = parser.add_subparsers(help='子命令', dest='cmd')
 
     sp.add_parser('init', help="在当前目录创建工作空间", view=view)
-    sp.add_parser('status', help="显示工作空间状态信息", view=view)
+
+    status_parser = sp.add_parser('status', help="显示工作空间状态信息", view=view)
+    status_parser.add_argument(
+        '-nl', '--not-link',
+        help='待复习的文件不使用链接方式创建', action='store_true')
+    status_parser.add_argument(
+        '-s', '--short',
+        help='任务文件仅包含QA部分,此选项默认会打开--not-link选项', action='store_true')
 
     commit_parser = sp.add_parser('commit', help="提交", view=view)
     commit_parser.add_argument(
         '-t', '--time',
         help='模拟本次提交为time天前提交', nargs='?', type=int)
+    commit_parser.add_argument(
+        '-nl', '--not-link',
+        help='待复习的文件不使用链接方式创建', action='store_true')
+    commit_parser.add_argument(
+        '-s', '--short',
+        help='任务文件仅包含QA部分,此选项默认会打开--not-link选项', action='store_true')
 
     purger = sp.add_parser(
         'purge', help='指定一个目录,将其中所有章节还原为普通章节', view=view)

@@ -22,19 +22,27 @@ class Runner(metaclass=Singleton):
         self._workspace_manger = workspace_manger
         self._get_content_handler = get_content_handler
 
-    def run(self, commit=True, time=None):
+    def run(self, commit=True, time=None, use_link=True, short=False):
+        id_qa_mapping = {}
+        if self._workspace_manger.last_task_operation() == 'copy':
+            for abspath in self._workspace_manger.get_paths_in_taskdir():
+                content_handler = self._get_content_handler(
+                    abspath, self._workspace_manger.get_relpath(abspath))
+                for qa in content_handler.get_qas():
+                    if qa.id:
+                        id_qa_mapping[qa.id] = qa
         self._workspace_manger.clean_task_dir()
-        return self._handle_all(commit, time)
+        return self._handle_all(commit, time, use_link, short, id_qa_mapping)
 
-    def _handle_all(self, commit, time):
+    def _handle_all(self, commit, time, use_link=True, short=False, id_qa_mapping=None):
         results = AllNoteHandleResults()
         for abspath in self._workspace_manger.get_paths():
-            result = self._handle_one(abspath, commit, time)
+            result = self._handle_one(abspath, commit, time, use_link, short, id_qa_mapping)
             if result:
                 results.add(result)
         return results
 
-    def _handle_one(self, abspath, commit, time):
+    def _handle_one(self, abspath, commit, time, use_link, short, id_qa_mapping):
         content_handler = self._get_content_handler(
             abspath, self._workspace_manger.get_relpath(abspath))
         qas = list(content_handler.get_qas())
@@ -45,8 +53,27 @@ class Runner(metaclass=Singleton):
         paused_qs = []
         modified = False
         for qa in qas:
-            state_transition, modified_ = self._qa_handler.handle(qa, commit,
-                                                                  time)
+            # todo  ws的状态应该在runner记忆
+            # 合并策略
+            qa_in_task = id_qa_mapping.get(qa.id)
+            if qa_in_task:
+
+                if any([qa.question != qa_in_task.question,
+                        qa.answer != qa_in_task.answer,
+                        qa.command != qa_in_task.command,
+                        qa.arg != qa_in_task.arg]):
+                    modified = True
+                    qa.question = qa_in_task.question
+                    qa.answer = qa_in_task.answer
+                    qa.command = qa_in_task.command
+                    qa.arg = qa_in_task.arg
+                if qa.body and qa_in_task.body:
+                    if qa.body != qa_in_task.body:
+                        modified = True
+
+                    qa.body = qa_in_task.body
+
+            state_transition, modified_ = self._qa_handler.handle(qa, commit, time)
             modified = modified or modified_
 
             if state_transition == StateTransition.NEW_TO_OLD:
@@ -64,11 +91,17 @@ class Runner(metaclass=Singleton):
             else:
                 pass
 
-        if need_reviewed_qs:
-            self._workspace_manger.create_shortcut(abspath)
-
         if modified:
             content_handler.save_qas(qas)
+
+        if need_reviewed_qs:
+            if use_link:
+                self._workspace_manger.create_shortcut(abspath)
+            else:
+                if short:
+                    pass
+                else:
+                    self._workspace_manger.copy_to_task_dir(abspath)
 
         if any((new_qs, need_reviewed_qs, reviewed_qs, paused_qs)):
             result = OneNoteHandleResult(

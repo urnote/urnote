@@ -6,7 +6,7 @@ from note.objects import get_parser
 from note.view import View
 
 
-class MyTestCase(unittest.TestCase):
+class TestArgParser(unittest.TestCase):
     def setUp(self):
         self.mock_view = Mock(spec=View)
         self.parser = get_parser(self.mock_view)
@@ -26,11 +26,13 @@ class MyTestCase(unittest.TestCase):
             ),
             (
                 'commit -t 3',
-                Namespace(cmd='commit', time=3, doc=False, version=False)
+                Namespace(cmd='commit', time=3, doc=False, version=False, not_link=False,
+                          short=False)
             ),
             (
                 'commit -t ',
-                Namespace(cmd='commit', time=None, doc=False, version=False)
+                Namespace(cmd='commit', time=None, doc=False, version=False, not_link=False,
+                          short=False)
             )
         ]
         for item in input_and_expected:

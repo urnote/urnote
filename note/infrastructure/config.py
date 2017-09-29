@@ -15,6 +15,7 @@ DB_PATH = os.path.join(APP_DATE_DIR_NAME, 'note.db3')
 LOG_PATH = os.path.join(APP_DATE_DIR_NAME, 'log.txt')
 CONFIG_PATH = os.path.join(APP_DATE_DIR_NAME, 'conf.txt')
 IGNORE_PATH = os.path.join(APP_DATE_DIR_NAME, 'ignore.txt')
+WORKSPACE_OPERATION_RECORD_PATH = os.path.join(APP_DATE_DIR_NAME, 'wor')
 
 # 处理过程中忽略的文件
 IGNORE_FILES = (
