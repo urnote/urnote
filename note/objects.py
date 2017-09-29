@@ -49,18 +49,18 @@ def get_parser(view):
     parser.add_argument(
         '-v', '--version', help='查看版本号', action='store_true')
 
-    sp = parser.add_subparsers(help='子命令', dest='cmd')
+    sp = parser.add_subparsers(help='子命令', dest='cmd', view=view)
 
-    sp.add_parser('init', help="在当前目录创建工作空间")
-    sp.add_parser('status', help="显示工作空间状态信息")
+    sp.add_parser('init', help="在当前目录创建工作空间", view=view)
+    sp.add_parser('status', help="显示工作空间状态信息", view=view)
 
-    commit_parser = sp.add_parser('commit', help="提交")
+    commit_parser = sp.add_parser('commit', help="提交", view=view)
     commit_parser.add_argument(
         '-t', '--time',
         help='模拟本次提交为time天前提交', nargs='?', type=int)
 
     purger = sp.add_parser(
-        'purge', help='指定一个目录,将其中所有章节还原为普通章节')
+        'purge', help='指定一个目录,将其中所有章节还原为普通章节', view=view)
     purger.add_argument(
         'path', help='需要处理的目录,可以使用相对路径和绝对路径')
 
