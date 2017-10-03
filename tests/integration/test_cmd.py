@@ -62,7 +62,8 @@ class EmptyWorkspaceStatusTest(EmptyWorkspaceTestCase):
 
 
 class Case1Test(WorkspaceTestCases.WorkspaceTestCase):
-    """一些最基本的测试"""
+    """一些最基本的测试
+    测试了９种笔记状态的转变"""
     CASE_NAME = 'case1'
 
     def _check_status(self):
@@ -84,8 +85,37 @@ class Case2Test(WorkspaceTestCases.WorkspaceTestCase):
 
 
 class Case3Test(WorkspaceTestCases.WorkspaceTestCase):
-    """基于case1的测试用例，在内容中随机加入了answer结尾标志符"""
+    """基于case1的测试用例，在内容中随机加入了answer结尾标志符
+    测试了可以程序正确的处理＂---＂分隔符"""
     CASE_NAME = 'case3'
+
+    def _check_status(self):
+        self.assertTrue(self.mock_view.show_report_after_status.called)
+
+    def _check_commit(self):
+        self.assertEqual(self.mock_view.show_report_after_commit.call_count, 1)
+
+
+class Case4Test(WorkspaceTestCases.WorkspaceTestCase):
+    """测试可以使用非快捷方式"""
+    CASE_NAME = 'case4'
+
+    def _args(self):
+        return ['-nl']
+
+    def _check_status(self):
+        self.assertTrue(self.mock_view.show_report_after_status.called)
+
+    def _check_commit(self):
+        self.assertEqual(self.mock_view.show_report_after_commit.call_count, 1)
+
+
+class Case5Test(WorkspaceTestCases.WorkspaceTestCase):
+    """测试可以使用非快捷方式,且正确处理---分割答案"""
+    CASE_NAME = 'case5'
+
+    def _args(self):
+        return ['-nl']
 
     def _check_status(self):
         self.assertTrue(self.mock_view.show_report_after_status.called)

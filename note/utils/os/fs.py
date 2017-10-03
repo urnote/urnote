@@ -1,15 +1,18 @@
 """该模块主要提供一些关于文件系统(filesystem)的API"""
+import difflib
+import filecmp
 import os
 import platform
 import shutil
 from contextlib import ContextDecorator
+from filecmp import dircmp
 from functools import wraps
 
 __all__ = [
     'create_shortcut', 'create_shortcut_on_windows', 'create_shortcut_on_linux',
     'hidden_dir', 'hidden_dir_on_windows', 'hidden_dir_on_linux',
     'make_dir_of_file', 'clean_dir', 'exist_in_dir', 'exist_in_or_above',
-    'walk', 'virtual_workspace'
+    'walk', 'virtual_workspace', 'is_same'
 ]
 
 
@@ -276,7 +279,6 @@ class virtual_workspace(ContextDecorator):
         self.bak_dirname = os.path.abspath(self.dirname + 'BAK')
 
     def enter(self):
-
         self.dirname = self.dirname.rstrip(r'\/')
         if not os.path.isdir(self.dirname):
             raise NotADirectoryError(self.dirname)
@@ -319,6 +321,7 @@ def copy_file(src_path, dest_dir, keep_dir):
         target_path = os.path.join(dest_dir, basename)
 
     shutil.copyfile(src_path, target_path)
+    return target_path
 
 
 def move_file(src_path, dest_dir, keep_dir):
@@ -332,3 +335,48 @@ def move_file(src_path, dest_dir, keep_dir):
 
     shutil.move(src_path, target_path)
     return target_path
+
+
+def is_same(dir1, dir2, **kwargs):
+    """
+    Compare two directory trees content.
+    Return False if they differ, True is they are the same.
+    """
+    compared = dircmp(dir1, dir2, **kwargs)
+    if (compared.left_only or compared.right_only or compared.diff_files
+        or compared.funny_files):
+        return False
+    for subdir in compared.common_dirs:
+        if not is_same(os.path.join(dir1, subdir), os.path.join(dir2, subdir), **kwargs):
+            return False
+    return True
+
+
+def _dir_cmp(cmp, raise_exc=True):
+    if cmp.diff_files:
+        for file in cmp.diff_files:
+            with open(os.path.join(cmp.left, file), 'r') as left_fo, open(
+                    os.path.join(cmp.right, file), 'r') as right_fo:
+                left = left_fo.readlines()
+                right = right_fo.readlines()
+                d = difflib.Differ()
+                diff = d.compare(left, right)
+                print('\n'.join(list(diff)))
+        if raise_exc:
+            raise ValueError(cmp.diff_files)
+        else:
+            return False
+    for sub_cmp in cmp.subdirs.values():
+        if not _dir_cmp(sub_cmp):
+            return False
+    else:
+        return True
+
+
+def is_same2(dir1, dir2, raise_exc=True, **kwargs):
+    """
+    Compare two directory trees content. Only compare files in both directories.
+    Return False if they differ, True is they are the same.
+    """
+    cmp = filecmp.dircmp(dir1, dir2, **kwargs)
+    return _dir_cmp(cmp, raise_exc)

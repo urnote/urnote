@@ -76,7 +76,7 @@ class WorkspaceManager(metaclass=Singleton):
                 pickle.dump(wor, fo)
 
     def copy_to_task_dir(self, abspath):
-        target_path = fs.copy_file(abspath, self.path_helper.task_path, keep_dir=True)
+        fs.copy_file(abspath, self.path_helper.task_path, keep_dir=True)
 
         try:
             with open(self.path_helper.workspace_operation_record_path, 'rb')as fo:
@@ -85,7 +85,6 @@ class WorkspaceManager(metaclass=Singleton):
             wor = WorkspaceOperationRecord()
 
         wor.last_operation_in_task_dir = 'copy'
-        wor.copy_map[target_path] = abspath
         with open(self.path_helper.workspace_operation_record_path, 'wb')as fo:
             pickle.dump(wor, fo)
 

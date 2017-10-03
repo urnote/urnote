@@ -15,7 +15,7 @@ class Initializer(metaclass=Singleton):
         self._work_space_manger.create_workspace()
 
 
-class Runner(metaclass=Singleton):
+class StatusCMDHandler(metaclass=Singleton):
     def __init__(self, qa_handler: ReviewQAHandler,
                  workspace_manger: WorkspaceManager, get_content_handler):
         self._qa_handler = qa_handler
@@ -23,6 +23,7 @@ class Runner(metaclass=Singleton):
         self._get_content_handler = get_content_handler
 
     def run(self, commit=True, time=None, use_link=True, short=False):
+        # 处理task空间的内容，返回qa_map,如果没什么处理结果返回{}
         id_qa_mapping = {}
         if self._workspace_manger.last_task_operation() == 'copy':
             for abspath in self._workspace_manger.get_paths_in_taskdir():
@@ -32,9 +33,8 @@ class Runner(metaclass=Singleton):
                     if qa.id:
                         id_qa_mapping[qa.id] = qa
         self._workspace_manger.clean_task_dir()
-        return self._handle_all(commit, time, use_link, short, id_qa_mapping)
 
-    def _handle_all(self, commit, time, use_link=True, short=False, id_qa_mapping=None):
+        # 处理所有的核心笔记的内容，返回结果
         results = AllNoteHandleResults()
         for abspath in self._workspace_manger.get_paths():
             result = self._handle_one(abspath, commit, time, use_link, short, id_qa_mapping)
@@ -53,7 +53,6 @@ class Runner(metaclass=Singleton):
         paused_qs = []
         modified = False
         for qa in qas:
-            # todo  ws的状态应该在runner记忆
             # 合并策略
             qa_in_task = id_qa_mapping.get(qa.id)
             if qa_in_task:
@@ -67,11 +66,10 @@ class Runner(metaclass=Singleton):
                     qa.answer = qa_in_task.answer
                     qa.command = qa_in_task.command
                     qa.arg = qa_in_task.arg
-                if qa.body and qa_in_task.body:
+                if qa_in_task.body:
                     if qa.body != qa_in_task.body:
                         modified = True
-
-                    qa.body = qa_in_task.body
+                        qa.body = qa_in_task.body
 
             state_transition, modified_ = self._qa_handler.handle(qa, commit, time)
             modified = modified or modified_

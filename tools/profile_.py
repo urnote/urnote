@@ -9,11 +9,10 @@ from unittest.mock import patch
 
 # noinspection PyUnresolvedReferences
 import context
-from note.infrastructure import config
-
-from note.utils.os.fs import virtual_workspace
-from note.utils import suppress_stdout, timeit
 from note.__main__ import run as run_note
+from note.infrastructure import config
+from note.utils import suppress_stdout, timeit
+from note.utils.os.fs import virtual_workspace
 
 
 def sandbox(func):

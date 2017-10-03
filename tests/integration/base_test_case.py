@@ -1,5 +1,4 @@
 import datetime
-import filecmp
 import importlib
 import logging
 import os
@@ -13,7 +12,7 @@ from note.controller import Controller
 from note.objects import (get_purger, get_parser, get_initializer,
                           get_runner, get_logger, release,
                           get_status_result_visitor, get_commit_result_visitor)
-from note.utils.os.fs import virtual_workspace
+from note.utils.os.fs import virtual_workspace, is_same2
 from note.utils.pattern import Singleton
 from note.view import View
 
@@ -30,9 +29,9 @@ class CommandTestCase(unittest.TestCase):
         importlib.reload(logging)
         self.mock_view.reset_mock()
 
-    def run_app(self, command):
+    def run_app(self, command, *args):
         import sys
-        sys.argv = ['note', command]
+        sys.argv = ['note', command, *args]
         view = self.mock_view
         self.controller = Controller(
             view, get_logger(), get_parser(view),
@@ -100,17 +99,23 @@ class WorkspaceTestCases:
             )
 
         def _compare_workspace(self, workspace):
-            # 比较工作空间中的文件是否都一样
-            d = filecmp.dircmp(self.root_path,
-                               ExpectedRootDir(self.CASE_NAME, workspace),
-                               ignore=['note.db3'])
-            self.assertFalse(d.diff_files)
+            # 递归比较工作空间中的文件是否都一样, 比较时只比较两边同时有的文件
+            self.assertTrue(is_same2(self.root_path,
+                                     ExpectedRootDir(self.CASE_NAME, workspace), raise_exc=True,
+                                     ignore=['note.db3', 'wor']))
             equal = DBTools.cmp_db(self.db_path,
                                    ExpectedDbPath(self.CASE_NAME, workspace))
             self.assertTrue(equal)
 
+        def _args(self):
+            return []
+
         def test_status(self):
-            self.run_app('status')
+            args = self._args()
+            if args:
+                self.run_app('status', *args)
+            else:
+                self.run_app('status')
 
             # check
             self._check_status()

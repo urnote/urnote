@@ -6,7 +6,7 @@ from note.infrastructure import config
 from note.infrastructure.db import DB
 from note.infrastructure.error import CMDError
 from note.infrastructure.logging import LoggerFactory
-from note.module.app import Initializer, Runner, Purger
+from note.module.app import Initializer, StatusCMDHandler, Purger
 from note.module.argparser import CustomArgumentParser
 from note.module.filehandler import WorkspaceManager
 from note.module.markdown.filehandler import MarkdownFileContentHandler
@@ -100,7 +100,7 @@ def get_runner():
         raise CMDError.uninitialized()
     r = Reviewer(_review_record_db=_db)
     title_handler = ReviewQAHandler(reviewer=r)
-    runner = Runner(
+    runner = StatusCMDHandler(
         qa_handler=title_handler,
         workspace_manger=get_workspace_manager(),
         get_content_handler=get_content_handler

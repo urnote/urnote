@@ -132,7 +132,7 @@ class TestMarkdownFileHandler_Get_Qas(TestMarkdownFileHandler):
 
 class TestMarkdownFileHandler_Save_Qas(TestMarkdownFileHandler):
     def test_normal(self):
-        qas = [QA("# chapter", "内容",None, None, QAState.NORMAL, None, None)]
+        qas = [QA("# chapter", "内容", None, None, QAState.NORMAL, None, None)]
         expected = "# chapter\n" \
                    "内容"
         self._check(expected, qas)
@@ -213,7 +213,7 @@ class TestMarkdownFileHandler_Save_Qas(TestMarkdownFileHandler):
         self._check(expected, qas)
 
     def test_paused(self):
-        qas = [QA("# chapter", "内容",None, 1, QAState.PAUSED, None, None)]
+        qas = [QA("# chapter", "内容", None, 1, QAState.PAUSED, None, None)]
         expected = "# chapter    [:closed_book:](SOH0000001EOT)  \u200b\n" \
                    "内容"
         self._check(expected, qas)
