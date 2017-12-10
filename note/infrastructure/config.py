@@ -35,4 +35,4 @@ else:
         LOCALES = os.path.join(sys._MEIPASS, 'locales')
 
 # 在线文档链接
-DOC_URL = 'https://jefffffrey.github.io/smart-note/'
+DOC_URL = 'https://urnote.github.io/urnote/'
