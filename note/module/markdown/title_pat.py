@@ -20,21 +20,21 @@ OLD = re.compile("""
 ^
 (?P<question>.*?)
 [\s\u200b]*?
-\[:question:\]
+\[(?::question:|❓)\]
 \(
 SOH(?P<id>\d{7})EOT
 \)
 [\s\u200b]*
 $
 """, re.VERBOSE)
-OLD_TITLE = "{question}    [:question:](SOH{id:07d}EOT)  \u200b".format
+OLD_TITLE = "{question}    [❓](SOH{id:07d}EOT)  \u200b".format
 
 # 需要复习的
 NEED_REVIEWED = re.compile("""
 ^
 (?P<question>.*?)
 [\s\u200b]*?
-\[:notification:\]
+\[(?::notification:|🔔)\]
 \(
 SOH(?P<id>\d{7})EOT
 \)
@@ -44,14 +44,14 @@ SOH(?P<id>\d{7})EOT
 $
 """, re.VERBOSE)
 NEED_REVIEWED_TITLE = (
-    "{question}    [:notification:](SOH{id:07d}EOT)  \u200b{cmd_string}".format)
+    "{question}    [🔔](SOH{id:07d}EOT)  \u200b{cmd_string}".format)
 
 # 停止复习的笔记的标题
 PAUSED = re.compile("""
 ^
 (?P<question>.*?)
 [\s\u200b]*?
-\[:closed_book:\]
+\[(?::closed_book:|📕)\]
 \(
 SOH(?P<id>\d{7})EOT
 \)
@@ -61,4 +61,4 @@ SOH(?P<id>\d{7})EOT
 $
 """, re.VERBOSE)
 PAUSED_TITLE = (
-    "{question}    [:closed_book:](SOH{id:07d}EOT)  \u200b{cmd_string}".format)
+    "{question}    [📕](SOH{id:07d}EOT)  \u200b{cmd_string}".format)

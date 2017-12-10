@@ -181,46 +181,46 @@ class TestMarkdownFileHandler_Save_Qas(TestMarkdownFileHandler):
 
     def test_old(self):
         qas = [QA("# chapter", "内容", None, 1, QAState.OLD, None, None)]
-        expected = "# chapter    [:question:](SOH0000001EOT)  \u200b\n" \
+        expected = "# chapter    [❓](SOH0000001EOT)  \u200b\n" \
                    "内容"
         self._check(expected, qas)
 
     def test_need_reviewed(self):
         qas = [QA("# chapter", "内容", None, 1, QAState.NEED_REVIEWED, None, None)]
-        expected = "# chapter    [:notification:](SOH0000001EOT)  \u200b\n" \
+        expected = "# chapter    [🔔](SOH0000001EOT)  \u200b\n" \
                    "内容"
         self._check(expected, qas)
 
     def test_need_reviewed_with_V(self):
         qas = [
             QA("# chapter", "内容", None, 1, QAState.NEED_REVIEWED, Command.REMEMBER, None)]
-        expected = "# chapter    [:notification:](SOH0000001EOT)  \u200bV\n" \
+        expected = "# chapter    [🔔](SOH0000001EOT)  \u200bV\n" \
                    "内容"
         self._check(expected, qas)
 
     def test_need_reviewed_with_X(self):
         qas = [
             QA("# chapter", "内容", None, 1, QAState.NEED_REVIEWED, Command.FORGET, None)]
-        expected = "# chapter    [:notification:](SOH0000001EOT)  \u200bX\n" \
+        expected = "# chapter    [🔔](SOH0000001EOT)  \u200bX\n" \
                    "内容"
         self._check(expected, qas)
 
     def test_need_reviewed_with_P(self):
         qas = [QA("# chapter", "内容", None, 1, QAState.NEED_REVIEWED, Command.PAUSE,
                   None)]
-        expected = "# chapter    [:notification:](SOH0000001EOT)  \u200bP\n" \
+        expected = "# chapter    [🔔](SOH0000001EOT)  \u200bP\n" \
                    "内容"
         self._check(expected, qas)
 
     def test_paused(self):
         qas = [QA("# chapter", "内容", None, 1, QAState.PAUSED, None, None)]
-        expected = "# chapter    [:closed_book:](SOH0000001EOT)  \u200b\n" \
+        expected = "# chapter    [📕](SOH0000001EOT)  \u200b\n" \
                    "内容"
         self._check(expected, qas)
 
     def test_paused_with_C(self):
         qas = [QA("# chapter", "内容", None, 1, QAState.PAUSED, Command.CONTINUE, None)]
-        expected = "# chapter    [:closed_book:](SOH0000001EOT)  \u200bC\n" \
+        expected = "# chapter    [📕](SOH0000001EOT)  \u200bC\n" \
                    "内容"
         self._check(expected, qas)
 
