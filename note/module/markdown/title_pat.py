@@ -22,12 +22,12 @@ OLD = re.compile("""
 [\s\u200b]*?
 \[(?::question:|❓)\]
 \(
-SOH(?P<id>\d{7})EOT
+(?:SOH)?(?P<id>\d{,7})(?:EOT)?
 \)
 [\s\u200b]*
 $
 """, re.VERBOSE)
-OLD_TITLE = "{question}    [❓](SOH{id:07d}EOT)  \u200b".format
+OLD_TITLE = "{question}    [❓]({id:d})  \u200b".format
 
 # 需要复习的
 NEED_REVIEWED = re.compile("""
@@ -36,7 +36,7 @@ NEED_REVIEWED = re.compile("""
 [\s\u200b]*?
 \[(?::notification:|🔔)\]
 \(
-SOH(?P<id>\d{7})EOT
+(?:SOH)?(?P<id>\d{,7})(?:EOT)?
 \)
 [\s\u200b]*
 (?P<cmd_string>.*?)
@@ -44,7 +44,7 @@ SOH(?P<id>\d{7})EOT
 $
 """, re.VERBOSE)
 NEED_REVIEWED_TITLE = (
-    "{question}    [🔔](SOH{id:07d}EOT)  \u200b{cmd_string}".format)
+    "{question}    [🔔]({id:d})  \u200b{cmd_string}".format)
 
 # 停止复习的笔记的标题
 PAUSED = re.compile("""
@@ -53,7 +53,7 @@ PAUSED = re.compile("""
 [\s\u200b]*?
 \[(?::closed_book:|📕)\]
 \(
-SOH(?P<id>\d{7})EOT
+(?:SOH)?(?P<id>\d{,7})(?:EOT)?
 \)
 [\s\u200b]*
 (?P<cmd_string>.*?)
@@ -61,4 +61,4 @@ SOH(?P<id>\d{7})EOT
 $
 """, re.VERBOSE)
 PAUSED_TITLE = (
-    "{question}    [📕](SOH{id:07d}EOT)  \u200b{cmd_string}".format)
+    "{question}    [📕]({id:d})  \u200b{cmd_string}".format)
