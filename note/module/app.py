@@ -21,6 +21,7 @@ class StatusCMDHandler(metaclass=Singleton):
         self._qa_handler = qa_handler
         self._workspace_manger = workspace_manger
         self._get_content_handler = get_content_handler
+        self._last_task_operation = None
 
     def run(self, commit=True, time=None, use_link=True, short=False):
         # 处理task空间的内容，返回qa_map,如果没什么处理结果返回{}
@@ -28,7 +29,8 @@ class StatusCMDHandler(metaclass=Singleton):
             use_link = False
 
         id_qa_mapping = {}
-        if self._workspace_manger.last_task_operation() in ('copy', 'short'):
+        self._last_task_operation = self._workspace_manger.last_task_operation()
+        if self._last_task_operation in ('copy', 'short'):
             for abspath in self._workspace_manger.get_paths_in_taskdir():
                 content_handler = self._get_content_handler(
                     abspath, self._workspace_manger.get_relpath(abspath))
@@ -60,7 +62,7 @@ class StatusCMDHandler(metaclass=Singleton):
             # 合并策略
             qa_in_task = id_qa_mapping.get(qa.id)
             if qa_in_task:
-                if self._workspace_manger.last_task_operation() == 'short':
+                if self._last_task_operation == 'short':
                     qa_in_task.question = qa_in_task.question.lstrip()[1:]
                 if any([qa.question != qa_in_task.question,
                         qa.answer != qa_in_task.answer,
