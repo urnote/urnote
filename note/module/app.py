@@ -24,8 +24,11 @@ class StatusCMDHandler(metaclass=Singleton):
 
     def run(self, commit=True, time=None, use_link=True, short=False):
         # 处理task空间的内容，返回qa_map,如果没什么处理结果返回{}
+        if short:
+            use_link = False
+
         id_qa_mapping = {}
-        if self._workspace_manger.last_task_operation() == 'copy':
+        if self._workspace_manger.last_task_operation() in ('copy', 'short'):
             for abspath in self._workspace_manger.get_paths_in_taskdir():
                 content_handler = self._get_content_handler(
                     abspath, self._workspace_manger.get_relpath(abspath))
@@ -43,12 +46,13 @@ class StatusCMDHandler(metaclass=Singleton):
         return results
 
     def _handle_one(self, abspath, commit, time, use_link, short, id_qa_mapping):
-        content_handler = self._get_content_handler(
-            abspath, self._workspace_manger.get_relpath(abspath))
+        location = self._workspace_manger.get_relpath(abspath)
+        content_handler = self._get_content_handler(abspath, location)
         qas = list(content_handler.get_qas())
 
         new_qs = []
         need_reviewed_qs = []
+        need_reviewed_qs2 = []
         reviewed_qs = []
         paused_qs = []
         modified = False
@@ -56,7 +60,8 @@ class StatusCMDHandler(metaclass=Singleton):
             # 合并策略
             qa_in_task = id_qa_mapping.get(qa.id)
             if qa_in_task:
-
+                if self._workspace_manger.last_task_operation() == 'short':
+                    qa_in_task.question = qa_in_task.question.lstrip()[1:]
                 if any([qa.question != qa_in_task.question,
                         qa.answer != qa_in_task.answer,
                         qa.command != qa_in_task.command,
@@ -81,6 +86,7 @@ class StatusCMDHandler(metaclass=Singleton):
                     StateTransition.STILL_NEED_REVIEWED,
                     StateTransition.PAUSED_TO_NEED_REVIEWED):
                 need_reviewed_qs.append(str(qa))
+                need_reviewed_qs2.append(qa)
             elif state_transition == StateTransition.NEED_REVIEWED_TO_OLD:
                 reviewed_qs.append(str(qa))
             elif state_transition == \
@@ -97,19 +103,31 @@ class StatusCMDHandler(metaclass=Singleton):
                 self._workspace_manger.create_shortcut(abspath)
             else:
                 if short:
-                    pass
+                    self._append_review_task_in_task_file(location, need_reviewed_qs2)
                 else:
                     self._workspace_manger.copy_to_task_dir(abspath)
 
         if any((new_qs, need_reviewed_qs, reviewed_qs, paused_qs)):
             result = OneNoteHandleResult(
-                location=self._workspace_manger.get_relpath(abspath),
+                location=location,
                 new_qs=new_qs,
                 need_reviewed_qs=need_reviewed_qs,
                 reviewed_qs=reviewed_qs,
                 paused_qs=paused_qs)
             return result
         return None
+
+    def _append_review_task_in_task_file(self, location, need_reviewed_qs):
+        self._remove_body_in_qas(need_reviewed_qs)
+        task_file_path = self._workspace_manger.task_file_path()
+        content_handler = self._get_content_handler(
+            task_file_path, self._workspace_manger.get_relpath(task_file_path))
+        content_handler.append_qas(need_reviewed_qs, location)
+
+    @staticmethod
+    def _remove_body_in_qas(qas):
+        for qa in qas:
+            qa.body = None
 
 
 class Purger(metaclass=Singleton):

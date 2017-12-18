@@ -124,5 +124,19 @@ class Case5Test(WorkspaceTestCases.WorkspaceTestCase):
         self.assertEqual(self.mock_view.show_report_after_commit.call_count, 1)
 
 
+class Case6Test(WorkspaceTestCases.WorkspaceTestCase):
+    """测试单文件复习"""
+    CASE_NAME = 'case6'
+
+    def _args(self):
+        return ['-s']
+
+    def _check_status(self):
+        self.assertTrue(self.mock_view.show_report_after_status.called)
+
+    def _check_commit(self):
+        self.assertEqual(self.mock_view.show_report_after_commit.call_count, 1)
+
+
 if __name__ == '__main__':
     unittest.main()

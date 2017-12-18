@@ -224,28 +224,36 @@ class MarkdownFileContentHandler(FileContentHandler):
             with open(path, "w", encoding="utf-8") as fo:
                 fo.write(new_content)
 
-    def _convert_to_text(self, qas):
+    def append_qas(self, qas, relpath):
+        new_content = self._convert_to_text(qas, level_reduce=1)
+        with open(self._path, "a", encoding="utf-8") as fo:
+            fo.write('\n# /{}\n\n'.format(relpath.rstrip('.md')))
+            fo.write(new_content)
+
+    def _convert_to_text(self, qas, level_reduce=0):
         if self._toc:
             new_content = [self._toc.strip()]
         else:
             new_content = []
         for qa in qas:
-            header, body = self._to_text(qa)
+            header, body = self._to_text(qa, level_reduce)
             new_content.append(header)
             new_content.append(body)
         new_content = "\n".join(new_content)
         return new_content
 
-    def _to_text(self, qa: QA):
+    def _to_text(self, qa: QA, level_reduce):
         assert qa.state is not None
         if qa.body:
             body = qa.answer + '\n---\n' + qa.body
         else:
             body = qa.answer
-        return self._get_q(qa), body
+        return self._get_q(qa, level_reduce), body
 
     @staticmethod
-    def _get_q(qa: QA):
+    def _get_q(qa: QA, level_reduce):
+        if level_reduce:
+            qa.question = '#' + qa.question.lstrip()
         if qa.state == QAState.NORMAL:
             if qa.command is None:
                 return qa.question

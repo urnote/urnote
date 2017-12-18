@@ -63,7 +63,8 @@ class Controller(metaclass=Singleton):
             self.view.show_report_after_status(report)
         elif args.cmd == 'commit':
             runner = self.get_runner()
-            result = runner.run(commit=True, time=args.time)
+            result = runner.run(commit=True, time=args.time, use_link=not args.not_link,
+                                short=args.short)
             report = result.accept(self.get_commit_result_visitor())
             self.view.show_report_after_commit(report)
         elif args.cmd == 'purge':

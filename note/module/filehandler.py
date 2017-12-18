@@ -1,6 +1,7 @@
 import os
 import pickle
 import shutil
+from functools import lru_cache
 
 from note.infrastructure import config
 from note.infrastructure.error import CMDError
@@ -200,3 +201,23 @@ class WorkspaceManager(metaclass=Singleton):
 
     def clean_task_dir(self):
         fs.clean_dir(self.path_helper.task_path)
+
+    def create_task_file(self, path):
+        with open(path, 'a'):
+            pass
+
+        try:
+            with open(self.path_helper.workspace_operation_record_path, 'rb')as fo:
+                wor = pickle.load(fo)
+        except OSError:
+            wor = WorkspaceOperationRecord()
+
+        wor.last_operation_in_task_dir = 'short'
+        with open(self.path_helper.workspace_operation_record_path, 'wb')as fo:
+            pickle.dump(wor, fo)
+
+    @lru_cache()
+    def task_file_path(self):
+        path = os.path.join(self.path_helper.task_path, 'task.md')
+        self.create_task_file(path)
+        return path
