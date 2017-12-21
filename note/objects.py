@@ -65,7 +65,7 @@ def get_parser(view):
         help='仅提交符合文件名符合pattern的笔记', nargs='?', type=str)
     status_parser.add_argument(
         '-ds', '--default-score',
-        help='仅提交符合文件名符合pattern的笔记', type=str, choices=['v', 'x', 'p', 'c'], default=None)
+        help='仅提交符合文件名符合pattern的笔记', type=str, choices=list('?vxpc？VXPC'), default=None)
 
     commit_parser = sp.add_parser('commit', help="提交", view=view)
     commit_parser.add_argument(

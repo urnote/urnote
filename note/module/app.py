@@ -42,7 +42,8 @@ class StatusCMDHandler(metaclass=Singleton):
         # 处理所有的核心笔记的内容，返回结果
         results = AllNoteHandleResults()
         for abspath in self._workspace_manger.get_paths(pattern):
-            result = self._handle_one(abspath, commit, time, use_link, short, id_qa_mapping,default)
+            result = self._handle_one(abspath, commit, time, use_link, short, id_qa_mapping,
+                                      default)
             if result:
                 results.add(result)
         return results
@@ -78,6 +79,14 @@ class StatusCMDHandler(metaclass=Singleton):
                         modified = True
                         qa.body = qa_in_task.body
 
+            if qa.command is None and default:
+                try:
+                    qa.command = default
+                except ValueError:
+                    pass
+                else:
+                    if commit:
+                        modified = True
             state_transition, modified_ = self._qa_handler.handle(qa, commit, time)
             modified = modified or modified_
 

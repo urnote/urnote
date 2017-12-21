@@ -28,14 +28,23 @@ class QA(Base):
             self._command = None
             return
 
-        assert self.state is not None
-        assert self.state != QAState.OLD
+        if isinstance(value, (str, bytes)):
+            value = Command.get(value)
+
+        if self.state is None:
+            raise ValueError
+        if self.state == QAState.OLD:
+            raise ValueError
+
         if self.state == QAState.NORMAL:
-            assert value == Command.ADD
+            if value != Command.ADD:
+                raise ValueError
         if self.state == QAState.NEED_REVIEWED:
-            assert value in (Command.REMEMBER, Command.FORGET, Command.PAUSE)
+            if value not in (Command.REMEMBER, Command.FORGET, Command.PAUSE):
+                raise ValueError
         if self.state == QAState.PAUSED:
-            assert value == Command.CONTINUE
+            if value != Command.CONTINUE:
+                raise ValueError
 
         self._command = value
 
@@ -70,6 +79,19 @@ class Command(Enum):
     FORGET = 2
     PAUSE = 3
     CONTINUE = 4
+
+    @classmethod
+    def get(cls, command):
+        if command in '?？':
+            return cls.ADD
+        if command in 'vV':
+            return cls.REMEMBER
+        if command in 'xX':
+            return cls.FORGET
+        if command in 'pP':
+            return cls.PAUSE
+        if command in 'cC':
+            return cls.CONTINUE
 
 
 class OneNoteHandleResult(Base):
