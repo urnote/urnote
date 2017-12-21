@@ -60,17 +60,29 @@ def get_parser(view):
     status_parser.add_argument(
         '-s', '--short',
         help='生成单一任务文件，且仅包含QA部分,此选项默认会打开--not-link选项', action='store_true')
+    status_parser.add_argument(
+        '-p', '--pattern',
+        help='仅提交符合文件名符合pattern的笔记', nargs='?', type=str)
+    status_parser.add_argument(
+        '-ds', '--default-score',
+        help='仅提交符合文件名符合pattern的笔记', type=str, choices=['v', 'x', 'p', 'c'], default=None)
 
     commit_parser = sp.add_parser('commit', help="提交", view=view)
     commit_parser.add_argument(
         '-t', '--time',
-        help='模拟本次提交为time天前提交', nargs='?', type=int)
+        help='模拟本次提交为time天前提交', nargs='?', type=int)  # nargs写成1,p的值是列表
     commit_parser.add_argument(
         '-nl', '--not-link',
         help='待复习的文件不使用链接方式创建', action='store_true')
     commit_parser.add_argument(
         '-s', '--short',
         help='任务文件仅包含QA部分,此选项默认会打开--not-link选项', action='store_true')
+    commit_parser.add_argument(
+        '-p', '--pattern',
+        help='仅提交符合文件名符合pattern的笔记', nargs='?', type=str)
+    commit_parser.add_argument(
+        '-ds', '--default-score',
+        help='仅提交符合文件名符合pattern的笔记', type=str, choices=['v', 'x', 'p', 'c'], default=None)
 
     purger = sp.add_parser(
         'purge', help='指定一个目录,将其中所有章节还原为普通章节', view=view)

@@ -23,7 +23,7 @@ class StatusCMDHandler(metaclass=Singleton):
         self._get_content_handler = get_content_handler
         self._last_task_operation = None
 
-    def run(self, commit=True, time=None, use_link=True, short=False):
+    def run(self, commit=True, time=None, use_link=True, short=False, pattern=None, default=None):
         # 处理task空间的内容，返回qa_map,如果没什么处理结果返回{}
         if short:
             use_link = False
@@ -31,7 +31,7 @@ class StatusCMDHandler(metaclass=Singleton):
         id_qa_mapping = {}
         self._last_task_operation = self._workspace_manger.last_task_operation()
         if self._last_task_operation in ('copy', 'short'):
-            for abspath in self._workspace_manger.get_paths_in_taskdir():
+            for abspath in self._workspace_manger.get_paths_in_taskdir(pattern):
                 content_handler = self._get_content_handler(
                     abspath, self._workspace_manger.get_relpath(abspath))
                 for qa in content_handler.get_qas():
@@ -41,13 +41,13 @@ class StatusCMDHandler(metaclass=Singleton):
 
         # 处理所有的核心笔记的内容，返回结果
         results = AllNoteHandleResults()
-        for abspath in self._workspace_manger.get_paths():
-            result = self._handle_one(abspath, commit, time, use_link, short, id_qa_mapping)
+        for abspath in self._workspace_manger.get_paths(pattern):
+            result = self._handle_one(abspath, commit, time, use_link, short, id_qa_mapping,default)
             if result:
                 results.add(result)
         return results
 
-    def _handle_one(self, abspath, commit, time, use_link, short, id_qa_mapping):
+    def _handle_one(self, abspath, commit, time, use_link, short, id_qa_mapping, default=None):
         location = self._workspace_manger.get_relpath(abspath)
         content_handler = self._get_content_handler(abspath, location)
         qas = list(content_handler.get_qas())

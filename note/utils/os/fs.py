@@ -195,10 +195,11 @@ def exist_in_or_above(dirpath, name):
                 return None
 
 
-def walk(dirpath, ignore_patterns: tuple = (), ignore_patterns_filepath=''):
+def walk(dirpath, include_patterns=(), ignore_patterns: tuple = (), ignore_patterns_filepath=''):
     """返回一个目录中没有被忽略的文件的路径
 
     Args:
+        include_patterns : 包含的模式
         ignore_patterns: 忽略的模式.
             可以使用下面的3种类型:
                 .idea/          idea目录
@@ -210,33 +211,48 @@ def walk(dirpath, ignore_patterns: tuple = (), ignore_patterns_filepath=''):
     Yields:
         完整的路径
     """
-    if ignore_patterns_filepath != '':
-        with open(ignore_patterns_filepath, 'r', encoding='utf-8') as fo:
-            lines = fo.readlines()
-            lines = map(lambda line: line.strip(), lines)
-            lines = filter(lambda line: line.startswith('#') is False, lines)
-            lines = filter(lambda line: line != '', lines)
-            ignore_patterns += tuple(lines)
+    if include_patterns:
+        include_dirnames, include_extnames, include_filenames = _parser(
+            include_patterns)
 
-    ignore_dirnames, ignore_extnames, ignore_filenames = _parser(
-        ignore_patterns)
+        for dirpath, dirnames, filenames in os.walk(dirpath):
+            for dirname in set(dirnames) - set(include_dirnames):
+                dirnames.remove(dirname)
 
-    for dirpath, dirnames, filenames in os.walk(dirpath):
-        for dirname in set(dirnames) & set(ignore_dirnames):
-            dirnames.remove(dirname)
-
-        # 接下来开始处遍历文件
-        for filename in filenames:
-            if filename in ignore_filenames:
-                continue
-            else:
-                # 只有split之后长度大于1 才表示有后缀
-                # [-1]位置扩展名如果在忽略列表则忽略
-                res = filename.split('.')
-                if len(res) > 1 and res[-1].strip() in ignore_extnames:
+            # 接下来开始处遍历文件
+            for filename in filenames:
+                if filename not in include_filenames:
                     continue
                 else:
                     yield os.path.join(dirpath, filename)
+    else:
+        if ignore_patterns_filepath != '':
+            with open(ignore_patterns_filepath, 'r', encoding='utf-8') as fo:
+                lines = fo.readlines()
+                lines = map(lambda line: line.strip(), lines)
+                lines = filter(lambda line: line.startswith('#') is False, lines)
+                lines = filter(lambda line: line != '', lines)
+                ignore_patterns += tuple(lines)
+
+        ignore_dirnames, ignore_extnames, ignore_filenames = _parser(
+            ignore_patterns)
+
+        for dirpath, dirnames, filenames in os.walk(dirpath):
+            for dirname in set(dirnames) & set(ignore_dirnames):
+                dirnames.remove(dirname)
+
+            # 接下来开始处遍历文件
+            for filename in filenames:
+                if filename in ignore_filenames:
+                    continue
+                else:
+                    # 只有split之后长度大于1 才表示有后缀
+                    # [-1]位置扩展名如果在忽略列表则忽略
+                    res = filename.split('.')
+                    if len(res) > 1 and res[-1].strip() in ignore_extnames:
+                        continue
+                    else:
+                        yield os.path.join(dirpath, filename)
 
 
 def _parser(ignore_patterns):

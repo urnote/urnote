@@ -27,13 +27,23 @@ class TestArgParser(unittest.TestCase):
             (
                 'commit -t 3',
                 Namespace(cmd='commit', time=3, doc=False, version=False, not_link=False,
-                          short=False)
+                          short=False, pattern=None, default_score=None)
             ),
             (
                 'commit -t ',
                 Namespace(cmd='commit', time=None, doc=False, version=False, not_link=False,
-                          short=False)
-            )
+                          short=False, pattern=None, default_score=None)
+            ),
+            (
+                'commit -p *.py',
+                Namespace(cmd='commit', time=None, doc=False, version=False, not_link=False,
+                          short=False, pattern='*.py', default_score=None)
+            ),
+            (
+                'commit -ds v',
+                Namespace(cmd='commit', time=None, doc=False, version=False, not_link=False,
+                          short=False, pattern=None, default_score='v')
+            ),
         ]
         for item in input_and_expected:
             self.assertEqual(self._parse(item[0]), item[1])

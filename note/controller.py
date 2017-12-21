@@ -58,13 +58,14 @@ class Controller(metaclass=Singleton):
             initializer.init()
         elif args.cmd == 'status':
             runner = self.get_runner()
-            result = runner.run(commit=False, use_link=not args.not_link, short=args.short)
+            result = runner.run(commit=False, use_link=not args.not_link, short=args.short,
+                                pattern=args.pattern, default=args.default_score)
             report = result.accept(self.get_status_result_visitor())
             self.view.show_report_after_status(report)
         elif args.cmd == 'commit':
             runner = self.get_runner()
             result = runner.run(commit=True, time=args.time, use_link=not args.not_link,
-                                short=args.short)
+                                short=args.short, pattern=args.pattern, default=args.default_score)
             report = result.accept(self.get_commit_result_visitor())
             self.view.show_report_after_commit(report)
         elif args.cmd == 'purge':

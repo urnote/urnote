@@ -41,19 +41,29 @@ class WorkspaceManager(metaclass=Singleton):
         self._file_handler = None
         self.path_helper = path_helper
 
-    def get_paths(self):
+    def get_paths(self, pattern):
         """返回工作空间中的笔记的路径"""
+        if pattern:
+            patterns = (pattern,)
+        else:
+            patterns = ()
         for abspath in fs.walk(
                 dirpath=self.path_helper.root_dir,
+                include_patterns=patterns,
                 ignore_patterns=config.IGNORE_FILES,
                 ignore_patterns_filepath=self.path_helper.ignore_path):
             yield abspath
 
-    def get_paths_in_taskdir(self):
+    def get_paths_in_taskdir(self, pattern=None):
         """返回工作空间中的笔记的路径"""
+        if pattern:
+            patterns = (pattern,)
+        else:
+            patterns = ()
         for abspath in fs.walk(
                 dirpath=self.path_helper.task_path,
-                ignore_patterns=config.IGNORE_FILES,
+                include_patterns=patterns,
+                ignore_patterns=(),
                 ignore_patterns_filepath=self.path_helper.ignore_path):
             yield abspath
 
