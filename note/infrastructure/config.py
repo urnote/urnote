@@ -21,7 +21,7 @@ WORKSPACE_OPERATION_RECORD_PATH = os.path.join(APP_DATE_DIR_NAME, 'wor')
 IGNORE_FILES = (
     APP_DATE_DIR_NAME + os.sep, TASK_DIR_NAME + os.sep, PURGE_DIR_NAME + os.sep)
 if DEBUG:
-    IGNORE_FILES += ('*.py', '__pycache__/', '.git/', '*.exe', '*.lnk', '*.sh')
+    IGNORE_FILES += ('*.py', '__pycache__/', '.git/', '*.exe', '*.lnk', '*.sh', '.DS_Store')
 
 _DIR_PATH = os.path.dirname(__file__)
 

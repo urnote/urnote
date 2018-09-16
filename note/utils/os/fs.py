@@ -9,8 +9,8 @@ from filecmp import dircmp
 from functools import wraps
 
 __all__ = [
-    'create_shortcut', 'create_shortcut_on_windows', 'create_shortcut_on_linux',
-    'hidden_dir', 'hidden_dir_on_windows', 'hidden_dir_on_linux',
+    'create_shortcut', 'create_shortcut_on_windows', 'create_shortcut_on_unix',
+    'hidden_dir', 'hidden_dir_on_windows', 'hidden_dir_on_unix',
     'make_dir_of_file', 'clean_dir', 'exist_in_dir', 'exist_in_or_above',
     'walk', 'virtual_workspace', 'is_same'
 ]
@@ -19,7 +19,8 @@ __all__ = [
 def create_shortcut(src_path, dest_dir, keep_dir=False):
     return {
         'Windows': create_shortcut_on_windows,
-        'Linux': create_shortcut_on_linux
+        'Linux': create_shortcut_on_unix,
+        'Darwin': create_shortcut_on_unix,
     }[platform.system()](src_path, dest_dir, keep_dir)
 
 
@@ -53,11 +54,11 @@ def create_shortcut_on_windows(src_path, dest_dir, keep_dir=False):
     shortcut.Save()
 
 
-def create_shortcut_on_linux(src_path, dest_dir, keep_dir=False):
+def create_shortcut_on_unix(src_path, dest_dir, keep_dir=False):
     """在dest_dir目录下创建快捷方式
     src_path和dest_dir可以使用相对路径和绝对路径。dest_dir必须存在，不存在会跑出异常。
     """
-    assert platform.system() == 'Linux'
+    assert platform.system() in ('Linux', 'Darwin')
     if keep_dir:
         root_dir = os.path.commonpath([os.path.abspath(src_path), os.path.abspath(dest_dir)])
         link_path = os.path.join(dest_dir, os.path.relpath(src_path, root_dir))
@@ -77,7 +78,8 @@ def crete_dir_if_not_exist(path):
 def hidden_dir(dirpath):
     return {
         'Windows': hidden_dir_on_windows,
-        'Linux': hidden_dir_on_linux
+        'Linux': hidden_dir_on_unix,
+        'Darwin': hidden_dir_on_unix,
     }[platform.system()](dirpath)
 
 
@@ -97,7 +99,7 @@ def hidden_dir_on_windows(dirpath):
         raise ctypes.WinError()
 
 
-def hidden_dir_on_linux(dirpath):
+def hidden_dir_on_unix(dirpath):
     dirname, basename = os.path.split(dirpath)
     if basename[0] == '.':
         pass
@@ -360,7 +362,7 @@ def is_same(dir1, dir2, **kwargs):
     """
     compared = dircmp(dir1, dir2, **kwargs)
     if (compared.left_only or compared.right_only or compared.diff_files
-        or compared.funny_files):
+            or compared.funny_files):
         return False
     for subdir in compared.common_dirs:
         if not is_same(os.path.join(dir1, subdir), os.path.join(dir2, subdir), **kwargs):
