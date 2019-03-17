@@ -14,6 +14,15 @@ class ErrorMessage:
         return description, solution
 
 
+class AppError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    @property
+    def message(self):
+        return self.message
+
+
 class UserError(Exception):
     def __init__(self):
         self.msg = None

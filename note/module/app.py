@@ -1,4 +1,4 @@
-from note.infrastructure.error import CMDError
+from note.infrastructure.error import CMDError, AppError
 from note.module.element import (AllNoteHandleResults, StateTransition,
                                  OneNoteHandleResult)
 from note.module.filehandler import WorkspaceManager
@@ -41,14 +41,16 @@ class StatusCMDHandler(metaclass=Singleton):
 
         # 处理所有的核心笔记的内容，返回结果
         results = AllNoteHandleResults()
+
+        qa_ids = set()  # 检测重复ID
         for abspath in self._workspace_manger.get_paths(pattern):
-            result = self._handle_one(abspath, commit, time, use_link, short, id_qa_mapping,
+            result = self._handle_one(abspath, commit, time, use_link, short, id_qa_mapping, qa_ids,
                                       default)
             if result:
                 results.add(result)
         return results
 
-    def _handle_one(self, abspath, commit, time, use_link, short, id_qa_mapping, default=None):
+    def _handle_one(self, abspath, commit, time, use_link, short, id_qa_mapping, qa_ids, default=None):
         location = self._workspace_manger.get_relpath(abspath)
         content_handler = self._get_content_handler(abspath, location)
         qas = list(content_handler.get_qas())
@@ -60,6 +62,12 @@ class StatusCMDHandler(metaclass=Singleton):
         paused_qs = []
         modified = False
         for qa in qas:
+            if qa.id is not None:
+                if qa.id in qa_ids:
+                    raise AppError('Duplicate id: {}'.format(qa.id))
+                else:
+                    qa_ids.add(qa.id)
+
             # 合并策略
             qa_in_task = id_qa_mapping.get(qa.id)
             if qa_in_task:
