@@ -1,186 +1,76 @@
-[中文文档](./docs/index.md)
+# Urnote
 
-# Urnote Description
+Urnote是一个用来复习MarkDown笔记的工具。 
 
-## Profile
+## 快速开始
 
-Urnote is a tool helping you review your markdown notes.
+1. `pip install urnote`
+2. `cd 你的MarkdDown笔记目录/`
+3. `note init`
 
-![example](./docs/res/example.png)
+## 示例
 
-Editor: [Typora](https://typora.io/)
-
-## Quick start
-
-## Installation 
-
-**Windows**
-
-Download [Urnote](https://github.com/urnote/urnote/releases/),  unzip it on your computer, then click the `SET_PATH.bat` in the directory to add it into the computer's environment variable.
-
-**Linux/Unix**
-
-Download [Urnote](https://github.com/urnote/urnote/releases/),  unzip it on your computer, then click the `install.sh` in the directory to add it into the computer's environment variable. 
-
-After the installation:
-
-1. execute `note init`  to create a workspace
-2. write your notes, execute  `note status` to  confirm (this step can be skipped), then execute `note commit` 
-3. every day when you want to review your notes, please execute `note status`,Urnote will tell you how many notes you need to review, then enter the `TASK` directory, review those notes.Finally,execute `note commit` to commit.
-
-### Create workspace
-
-Workspace is a directory where note stores user data. These data include: users notes, related information of your notes,  program log, user config file.
-
-create a directory to Initialize workspace, then execute `note init`. The directory structure is as follows:
-
-```sh
-notes/
-|---.NOTE/
-|   |---db # review related information
-|   |---log # log
-|   |---ignore # ignore configuration mentioned below
-|---TASK/ # shortcut to your notes which should be reviewed 
-```
-
-## Written notes
-
-Now you can create notes under the workspace, for example, we create a `hello-urnote.md`  file, as follows:
+创建了一个hello.md文件, 内容如下:
 
 ```markdown
-# What is urnote?
-urnote is a tool that helps you review your notes.
+# Are you ok ?
+
+I am fine
 ```
 
-Now we excute `note status`  to view the status of our workspace, the result is as follows:
-
-![status](./docs/res/after_status.png)
-
-Note identifies the entries need to be added to the review plan through the question mark at the end of the title ,after confirmation execute `note commit` to commit it.
-
-After adding the review plan, you will find the file content of`hello-urnote.md` has changed:
+Urnote通过标题末尾的问号识别需要安排复习的章节, 执行 `note commit` 后该章节将被加入复习计划。加入复习计划后, 标题的格式会变成这样:
 
 ```markdown
-# What is urnote [❓] (1)
-urnote is a tool to help you review your notes.
+# Are you ok [?](1)
+
+ok
 ```
 
-The only constraint you should know is that you can't use symbols which Urnote treat as control characters at the end of title.
+之后每天需要复习的时候执行下 `note status` 命令, 如果发现有需要当天复习的内容, Urnote会创建`TASK/`目录并在里面展示需要复习的笔记。
 
-### Review your notes
+进入TASK目录打开文件,会发现之前的[❓]()变成了[🔔](),该符号用来提示条目需要复习。之后在🔔后面添加符号告诉Urnote复习结果:
 
-When entry has been added to the review plan, Urnote will remind you at the right time. Execute `note status` , if there are some entrys in the workspace need to be reviewed today , Urnote will tell you the number of entrys need to be reviewed  and create  shortcut linked to those file in the TASK directory.
+- 如果记得,标注V
+- 如果不记得,标注X
 
-Enter the TASK directory ,open a file, you will find ❓ turns into 🔔 which indicates the entry need to be reviewed. Add symbol in the tail to tell  Urnote your review results:
+完成标注后执行`note commit`提交即可.
 
-- If you remember, mark `v`
-- If you do not remember, mark `x`
+## 章节状态
 
-Execute `note status`  to view the status of our workspace. Execute `note commit  `after you confirm it.
+在Urnote中,一个章节总共有4种状态: 普通,处于复习计划,需要复习,暂停复习.
 
-![complex status](./docs/res/complex_status.png)
+**处于复习计划**
 
-### Support
+处于复习计划的章节以符号"❓"结束.
 
-- File format support: UTF-8
-- Note format support: Markdown
-- OS support: Windows, Linux and Mac
+**需要复习**
 
-## States and transitions
+符号 "🔔" 结束表示该条目需要复习.
 
-Note introduces the concept of `question`, see the complete instructions below.
+**暂停复习**
 
-### Question recognition
+ 符号"📕"表示该章节暂时退出了复习计划(不再提醒).
 
-Urnote uses the Markdown title syntax to recognize `question`, such as:
+## 状态转变
 
-```markdown
-# Question I
-answer
-# Question II
-answer
-```
+| 状态     | 可用的控制字符 | 意义                   |
+| ------ | ------- | -------------------- |
+| 普通     | ?       | 将普通笔记加入复习计划,将加入复习计划. |
+| 需要复习🔔 | V       | 表示记得,将继续处于复习计划中      |
+|        | X       | 表示不记得,将继续处于复习计划中     |
+|        | P       | 表示暂停本次笔记,将转入暂停复习的状态  |
+| 暂停复习📕 | C       | 表示继续学习该笔记,将加入复习计划    |
 
-Note will identify the two `question`: "Question I" and "Question II" 
+上面所有的字符均不区分大小写和全角.
 
-### Question State
+![状态转移图](./docs/res/state_transitions.png)
 
-In Urnote, there are 4 states: normal, in the review plan, need to be reviewed, paused.
+## 命令行参数
 
-**Normal**
+执行 `note -h` 或者 `note --help` 查看所有命令，如果要查看某个命令的具体用法可以 `note 命令名 --help`, 如 `note commit --help`
 
-All notes written by users should belong to this category.
+## Road Map
 
-**In the review plan**
-
-Title of those questions end with "❓"
-
-**Need to be reviewed**
-
-Title of those questions end with "🔔"
-
-**Paused**
-
-Title of those questions end with "📕", The symbol indicates that the question is temporarily withdrawn from the review plan (no longer remind).
-
-### State transitions
-
-Users are allowed to change the state of note in  3 cases , other state transitions are handled by the program:
-
-1. Add normal note to the review plan, only need to add a `? `at the end of the title
-2. After reviewing your notes, add  any character of`XVP` at the end of the title to submit you review result
-3. Add a `C` at the end of the title which has been paused to readd the question into review plan (review progress is not lost )
-
-Each state transition require you execute the `note commit` to commit.
-
-### Control character description
-
-| State                 | control characters available | function                     |
-| --------------------- | ---------------------------- | ---------------------------- |
-| Normal                | ?                            | Add to the review plan       |
-| Need to be reviewed🔔 | V                            | You remember it              |
-|                       | X                            | You forget it                |
-|                       | P                            | You want stop it temporarily |
-| Paused📕              | C                            | Readd it                     |
-
- All the characters above are not case-sensitive, and also support full-width.
-
-## Commands described
-
-All the commands provided by note are described in this chapter.
-
-### -h/--help
-
-Show help message of all commands,such as `note -h`.
-
-Use this after other commands could get more complete message of special command, such as`note status -h`
-
-### status
-
-Displays the status of workspace. 
-
-### init
-
-Create the workspace.
-
-### commit
-
-Commit your change.
-
-### purge
-
-Specify a file or directory, and note will create a copy of all the files in the target file or directory, copy is in the PURGE directory under the root directory , and then Urnote will clear all control information. so all questions will become normal question. 
-
-### --doc
-
-Show online document.
-
-## Configuration
-
-The program will process all files in the workspace by default. If you want to ignore some files, modify the `ignore`  file in `.NOTE`  directory, the file name support wildcard syntax, such as:
-
-```sh
-*.py # ignore all python scripts
-git/ # ignore git directory
-hello.png/# ignore hello.png
-```
+- [ ] 复习时间到了自动提醒
+- [ ] 复习算法初始值自动调整
+- [ ] 提前复习支持,即还没到复习时间的也可以提交[XVP]
