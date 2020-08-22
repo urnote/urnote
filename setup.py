@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='urnote',
 
-    version='0.3',
+    version='0.4',
 
     description='A program that utilizes spaced repetition to review your notes written in Markdown',
     long_description='',
@@ -37,7 +37,11 @@ setup(
 
     packages=find_packages(exclude=['test*']),
 
-    install_requires=['sqlalchemy', 'colorama'],
+    install_requires=[
+        'sqlalchemy',
+        'colorama',
+        "pypiwin32;platform_system=='Windows'"
+    ],
 
     python_requires='~=3.3',
 
